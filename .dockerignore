@@ -1,0 +1,11 @@
+# 构建上下文里不该打进镜像的东西
+.git
+.gitignore
+.preview
+data            # 本地开发用的 SQLite 库 + 上传图片，运行时由卷挂载生成
+node_modules
+*.png
+*.log
+tmp-*
+scripts         # 本地验收/测试脚本，非运行所需
+test

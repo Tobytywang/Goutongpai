@@ -1,0 +1,30 @@
+# 运行时数据：数据库与用户上传的图片，不要提交到仓库
+data/
+
+# 界面回归截图输出
+.preview/
+
+# 依赖（本项目零依赖，留作占位）
+node_modules/
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# 密钥与证书（绝不进仓库）
+.env
+.env.*
+*.pem
+*.key
+*.crt
+
+# WorkBuddy 本地项目数据（记忆/缓存，非源码）
+# 若日后要在仓库内共享 .workbuddy/skills，可改为只忽略 .workbuddy/memory/
+.workbuddy/
+
+# 临时截图与中间产物（UI 回归检查遗留）
+tmp-*.png
+*.tmp

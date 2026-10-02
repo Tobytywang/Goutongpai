@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>沟通牌 · 计分与赛季数据台</title>
+  <meta name="description" content="沟通牌在线计分台：录入分数、实时判定阵营胜负、赛季排行榜、玩家档案与高光时刻记录。">
+  <meta name="theme-color" content="#0f5132">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f5132'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23fff' font-family='serif'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <a class="skip-link" href="#view">跳到主要内容</a>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="brand" role="button" tabindex="0" data-route="dashboard" title="回到总览" aria-label="回到总览">
+        <span class="brand__mark" aria-hidden="true">♠</span>
+        <span class="brand__text">
+          <strong>沟通牌</strong>
+          <small>计分与赛季数据台</small>
+        </span>
+      </div>
+
+      <nav class="tabs" id="tabs" aria-label="主导航">
+        <button class="tab" type="button" data-route="scoring">计分</button>
+        <button class="tab" type="button" data-route="matches">对局</button>
+        <button class="tab" type="button" data-route="highlights">高光</button>
+        <button class="tab" type="button" data-route="leaderboard">排名</button>
+        <button class="tab" type="button" data-route="players">选手</button>
+        <button class="tab" type="button" data-route="seasons">赛季</button>
+      </nav>
+
+      <div class="topbar__right">
+        <div class="season-switcher" id="seasonSwitcher">
+          <button class="season-pill" type="button" id="seasonPillBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="切换赛季">
+            <span class="dot"></span>
+            <span id="currentSeasonName" class="season-pill__name">未选择</span>
+            <span class="caret" aria-hidden="true">▾</span>
+          </button>
+          <div class="season-menu" id="seasonMenu" role="listbox" aria-label="赛季列表" hidden></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="view" class="view" tabindex="-1"></main>
+
+  <footer class="footer">
+    <span>沟通牌计分台</span>
+    <span id="serverMeta" class="footer__meta"></span>
+  </footer>
+
+  <div id="modalRoot"></div>
+  <div id="toastRoot" class="toast-root" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+
+</html>

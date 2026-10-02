@@ -1,0 +1,35 @@
+# 沟通牌计分平台 —— 应用容器编排
+# 用法（服务器上，本文件所在目录）：
+#   docker compose build      # 构建镜像（改了代码后重跑）
+#   docker compose up -d      # 起/更新容器
+#   docker compose down       # 停容器（数据卷不丢）
+#   docker compose logs -f    # 看日志
+#
+# 注意：
+# - 只管「应用容器 + 数据卷」。HTTPS / Basic Auth / 域名 仍在宿主机 Nginx 层做（见 README 第四节）。
+# - ports 绑 127.0.0.1，Node 只听本机，由宿主机 Nginx 反代出去，不在公网裸暴露。
+# - 数据（SQLite 库 + 上传图片）在具名卷 goutongpai-data，容器重建不丢。
+
+services:
+  app:
+    build: .
+    image: goutongpai
+    container_name: goutongpai
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5178:5178"
+    environment:
+      - PORT=5178
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+    volumes:
+      - goutongpai-data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:'+(process.env.PORT||5178)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+
+volumes:
+  goutongpai-data:
