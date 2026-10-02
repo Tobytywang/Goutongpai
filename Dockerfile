@@ -1,8 +1,9 @@
 # 沟通牌计分平台 —— 服务器环境无关部署
-# 构建：docker build -t goutongpai .
-# 运行：docker run -d -p 5178:5178 -v goutongpai-data:/app/data --name goutongpai goutongpai
+# 构建：podman build -t goutongpai .
+# 运行：podman run -d -p 127.0.0.1:5178:5178 -v /opt/goutongpai-data:/app/data --name goutongpai goutongpai
+# 用 node:22-slim（Debian/glibc）而非 alpine（musl）：node:sqlite 在 musl 上会报 disk I/O error，glibc 正常。
 
-FROM node:22-alpine
+FROM node:22-slim
 
 WORKDIR /app
 
