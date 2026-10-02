@@ -24,10 +24,15 @@ podman rm "$CONTAINER" 2>/dev/null || true
 mkdir -p "$DATA_DIR"                 # 确保宿主机数据目录存在（首次或目录被删时）
 # 注意：本环境（root Podman）的 --restart 策略不被支持（cgroup 配置限制，run 报 invalid argument），故不加该标志；
 # 开机自启与崩溃重启改用 systemd unit（Restart=always），见仓库 goutongpai.service。
+# --security-opt seccomp=unconfined：本机默认 seccomp 策略拦截了 Node 启动期的线程创建系统调用
+# （glibc 2.34+ 的 pthread_create 会优先走 clone3，被拦后 uv_thread_create 断言崩溃、容器秒退）。
+# 放开 seccomp 后 Node 正常启动。这是单机自用、且已绑定 127.0.0.1 的场景，可接受；
+# 若想收紧，可改用只放行 clone3/clone 的自定义 seccomp profile 替代 unconfined。
 podman run -d \
   --name "$CONTAINER" \
   -p "$PORT" \
   -v "$DATA_DIR:/app/data" \
+  --security-opt seccomp=unconfined \
   "$IMAGE"
 
 echo "==> 完成"
