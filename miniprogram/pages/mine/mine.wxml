@@ -18,10 +18,12 @@
       <button class="btn-primary" bindtap="submitPlayer">保存</button>
     </view>
     <view wx:for="{{players}}" wx:key="id" class="list-item">
-      <view>
+      <image wx:if="{{item.avatarUrl}}" class="avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+      <view class="player-main">
         <text class="name">{{item.name}}</text>
         <text wx:if="{{item.style}}" class="muted"> · {{item.style}}</text>
       </view>
+      <button class="btn-ghost mini" data-id="{{item.id}}" bindtap="uploadAvatar">头像</button>
       <text wx:if="{{item.active}}" class="tag">启用</text>
     </view>
     <view wx:if="{{!players.length}}" class="empty">暂无选手</view>
@@ -43,6 +45,11 @@
       <text class="name">{{item.name}}</text>
       <text class="muted">{{item.deck_count}}副 · {{item.status === 'active' ? '进行中' : '已归档'}}</text>
     </view>
+  </view>
+
+  <view class="card muted row-between privacy-row" bindtap="openPrivacy">
+    <text>隐私政策</text>
+    <text class="arrow">›</text>
   </view>
 
   <view class="card muted">登录身份：{{openidMasked}}</view>

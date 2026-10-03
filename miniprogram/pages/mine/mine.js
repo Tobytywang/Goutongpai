@@ -1,9 +1,18 @@
-// 我的：选手管理 + 赛季管理 + 登录态展示（复用现有 /api 接口，与 Web 端互通）
-const { get, post } = require('../../utils/request');
+// 我的：选手管理 + 赛季管理 + 登录态展示 + 头像上传（复用现有 /api 接口，与 Web 端互通）
+const { get, post, BASE } = require('../../utils/request');
+const { chooseImageAsDataUrl } = require('../../utils/upload');
+const privacy = require('../../utils/privacy');
 
 function maskOpenid() {
   const o = wx.getStorageSync('openid') || '';
   return o ? o.slice(0, 6) + '****' + o.slice(-4) : '未登录';
+}
+
+// 给选手补上头像访问地址（服务端只存文件名，前端拼出完整 URL）
+function withAvatarUrl(p) {
+  return Object.assign({}, p, {
+    avatarUrl: p.avatar ? BASE + '/uploads/' + p.avatar : '',
+  });
 }
 
 Page({
@@ -42,7 +51,7 @@ Page({
       const current = seasons[idx];
       this.setData({
         seasons,
-        players: d.players || [],
+        players: (d.players || []).map(withAvatarUrl),
         currentSeasonId: current ? current.id : null,
         currentSeasonIndex: idx,
         loading: false,
@@ -105,5 +114,29 @@ Page({
     } catch (e) {
       wx.showToast({ title: e.message, icon: 'none' });
     }
+  },
+
+  // 阶段3：选图→压缩→base64→上传头像
+  async uploadAvatar(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    try {
+      wx.showLoading({ title: '处理中' });
+      const dataUrl = await chooseImageAsDataUrl({ maxSide: 400, quality: 70 });
+      await post('/api/players/' + id + '/avatar', { dataUrl });
+      wx.showToast({ title: '头像已更新', icon: 'success' });
+      this.loadAll();
+    } catch (err) {
+      // 用户主动取消选择/授权，不打扰
+      if (/cancel|chooseMedia:fail|requirePrivacyAuthorize:fail/.test(err.message || '')) return;
+      wx.showToast({ title: (err && err.message) || '上传失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
+  // 阶段4：打开隐私协议
+  openPrivacy() {
+    privacy.openContract();
   },
 });
