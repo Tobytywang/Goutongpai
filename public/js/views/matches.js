@@ -216,17 +216,19 @@ function detailBlock(match, root) {
       'div',
       { style: { marginTop: '14px', display: 'flex', justifyContent: 'flex-end' } },
       h(
-        'button',
-        {
-          class: 'btn btn--sm btn--danger',
-          type: 'button',
-          onclick: async () => {
-            const done = await confirmDeleteMatch(match);
-            if (done) renderMatches(root);
+            h(
+          'button',
+          {
+            'data-write': '',
+            class: 'btn btn--sm btn--danger',
+            type: 'button',
+            onclick: async () => {
+              const done = await confirmDeleteMatch(match);
+              if (done) renderMatches(root);
+            },
           },
-        },
-        '删除本局'
-      )
+          '删除本局'
+        )
     )
   );
 

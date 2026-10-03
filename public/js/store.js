@@ -28,6 +28,8 @@ export const store = {
   scopeAll: false,
   route: 'scoring',
   ready: false,
+  /** 网页端是否只读（由后端 bootstrap.meta.webReadonly 决定） */
+  readonly: false,
 
   prefs: loadPrefs(),
 
@@ -64,6 +66,11 @@ export const store = {
       player_ids: Array.isArray(x.player_ids) ? x.player_ids : x.player_id ? [x.player_id] : [],
     }));
     this.meta = data.meta || this.meta;
+    this.readonly = !!(this.meta && this.meta.webReadonly);
+    if (typeof document !== 'undefined' && this.readonly) {
+      document.documentElement.classList.add('web-readonly');
+      window.__WEB_READONLY__ = true;
+    }
 
     // 校验当前赛季是否还存在
     if (this.currentSeasonId !== null && !this.seasons.some((s) => s.id === this.currentSeasonId)) {

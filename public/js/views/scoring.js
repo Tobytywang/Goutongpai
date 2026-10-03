@@ -174,6 +174,24 @@ function campWasted(camp) {
 export function renderScoring(root) {
   root.innerHTML = '';
 
+  // 网页端只读：计分台是纯写入界面，直接展示只读提示，不渲染录入表单
+  if (store.readonly) {
+    root.append(
+      h(
+        'div',
+        { class: 'card' },
+        h(
+          'div',
+          { class: 'empty' },
+          h('div', { class: 'empty__icon' }, '🔒'),
+          h('div', { class: 'empty__title' }, '网页端为只读模式'),
+          h('div', { class: 'empty__desc' }, '计分录入、阵营编辑等写入操作已关闭。请用小程序录入本局分数。')
+        )
+      )
+    );
+    return;
+  }
+
   if (store.seasons.length === 0) {
     root.append(
       h(

@@ -9,6 +9,17 @@
   <meta name="theme-color" content="#0f5132">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f5132'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23fff' font-family='serif'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* 网页端只读：隐藏所有标记了 data-write 的写入控件 */
+    html.web-readonly [data-write] { display: none !important; }
+    .ro-banner {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; background: #0f5132; color: #fff;
+      font-size: 13px; line-height: 1.4;
+    }
+    .ro-banner[hidden] { display: none; }
+    .ro-banner__icon { font-size: 15px; }
+  </style>
 </head>
 
 <body>
@@ -45,6 +56,11 @@
       </div>
     </div>
   </header>
+
+  <div class="ro-banner" id="roBanner" hidden>
+    <span class="ro-banner__icon">🔒</span>
+    <span>网页端为只读模式 · 仅可浏览，录入 / 编辑 / 删除请使用小程序</span>
+  </div>
 
   <main id="view" class="view" tabindex="-1"></main>
 

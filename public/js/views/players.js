@@ -55,6 +55,7 @@ export function renderPlayers(root) {
         h(
           'button',
           {
+            'data-write': '',
             class: 'btn btn--primary',
             type: 'button',
             onclick: () => promptNewPlayer({ onCreated: () => renderPlayers(root) }),
@@ -118,12 +119,13 @@ export function renderPlayers(root) {
     const actions = h(
       'div',
       { class: 'player-card__actions' },
-      h('button', { class: 'btn btn--xs', type: 'button', onclick: () => uploadImage(player, 'avatar') }, player.avatar ? '换头像' : '上传头像'),
-      h('button', { class: 'btn btn--xs', type: 'button', onclick: () => uploadImage(player, 'photo') }, player.photo ? '换照片' : '上传照片'),
-      h('button', { class: 'btn btn--xs', type: 'button', onclick: () => promptEditPlayer(player).then(() => renderPlayers(root)) }, '编辑'),
+      h('button', { 'data-write': '', class: 'btn btn--xs', type: 'button', onclick: () => uploadImage(player, 'avatar') }, player.avatar ? '换头像' : '上传头像'),
+      h('button', { 'data-write': '', class: 'btn btn--xs', type: 'button', onclick: () => uploadImage(player, 'photo') }, player.photo ? '换照片' : '上传照片'),
+      h('button', { 'data-write': '', class: 'btn btn--xs', type: 'button', onclick: () => promptEditPlayer(player).then(() => renderPlayers(root)) }, '编辑'),
       h(
         'button',
         {
+          'data-write': '',
           class: 'btn btn--xs btn--danger',
           type: 'button',
           onclick: async () => {

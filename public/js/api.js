@@ -1,6 +1,10 @@
 /* 后端接口封装 */
 
 async function request(method, path, body) {
+  // 网页端只读：任何写操作在出发前就被拦下，避免收到后端 403
+  if ((method === 'POST' || method === 'PUT' || method === 'DELETE' || method === 'PATCH') && window.__WEB_READONLY__) {
+    throw new Error('网页端为只读模式，写入操作请使用小程序');
+  }
   const options = { method, headers: {} };
   if (body !== undefined) {
     options.headers['Content-Type'] = 'application/json';

@@ -165,6 +165,9 @@ const routes = [
   ['DELETE', /^\/api\/highlights\/(\d+)$/, (ctx) => api.deleteHighlight(Number(ctx.params[0]))],
 ];
 
+/** 会被改数据的 HTTP 方法 */
+const WRITE_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
+
 async function handleApi(req, res, pathname) {
   const method = req.method.toUpperCase();
 
@@ -172,6 +175,13 @@ async function handleApi(req, res, pathname) {
     const m = pattern.exec(pathname);
     if (!m) continue;
     if (routeMethod !== method) continue;
+
+    // 网页端只读：来自浏览器（带 Origin 头）的写入请求直接拒绝；
+    // 小程序走 wx.request（不带 Origin）不受影响，仍可正常录入 / 编辑 / 删除。
+    if (api.isWebReadonly() && WRITE_METHODS.includes(method) && req.headers.origin) {
+      sendJson(res, 403, { ok: false, error: '网页端为只读模式，写入操作请使用小程序', code: 'WEB_READONLY' });
+      return true;
+    }
 
     const ctx = {
       params: m.slice(1),

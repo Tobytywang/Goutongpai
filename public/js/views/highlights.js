@@ -80,7 +80,7 @@ export function renderHighlights(root) {
               h('div', { class: 'empty__desc' }, '把那些「最后一轮翻盘」「四张 K 全收」的瞬间记下来，赛季结束时回看最有味道'),
               h(
                 'button',
-                { class: 'btn btn--primary', type: 'button', onclick: () => promptNewHighlight({ defaults: { season_id: store.currentSeasonId } }).then(() => renderHighlights(root)) },
+                { 'data-write': '', class: 'btn btn--primary', type: 'button', onclick: () => promptNewHighlight({ defaults: { season_id: store.currentSeasonId } }).then(() => renderHighlights(root)) },
                 '记录第一条'
               )
             )
@@ -101,6 +101,7 @@ export function renderHighlights(root) {
         h(
           'button',
           {
+            'data-write': '',
             class: 'btn btn--primary',
             type: 'button',
             onclick: () => promptNewHighlight({ defaults: { season_id: store.currentSeasonId } }).then(() => renderHighlights(root)),
@@ -172,6 +173,7 @@ function highlightCard(item, root) {
       h(
         'button',
         {
+          'data-write': '',
           class: 'btn btn--xs btn--ghost',
           style: { marginLeft: 'auto' },
           type: 'button',

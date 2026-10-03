@@ -33,6 +33,7 @@ export function renderSeasons(root) {
         h(
           'button',
           {
+            'data-write': '',
             class: 'btn btn--primary',
             type: 'button',
             onclick: () => promptNewSeason({ onCreated: () => renderSeasons(root) }),
@@ -57,7 +58,7 @@ export function renderSeasons(root) {
           h('div', { class: 'empty__desc' }, '赛季是统计的容器，先建一个再开始记分'),
           h(
             'button',
-            { class: 'btn btn--primary', type: 'button', onclick: () => promptNewSeason({ onCreated: () => renderSeasons(root) }) },
+            { 'data-write': '', class: 'btn btn--primary', type: 'button', onclick: () => promptNewSeason({ onCreated: () => renderSeasons(root) }) },
             '创建赛季'
           )
         )
@@ -120,10 +121,11 @@ export function renderSeasons(root) {
                 { class: 'btn btn--xs', type: 'button', onclick: () => store.setSeason(season.id) },
                 '设为当前'
               ),
-          h('button', { class: 'btn btn--xs', type: 'button', onclick: () => promptEditSeason(season).then(() => renderSeasons(root)) }, '编辑'),
+          h('button', { 'data-write': '', class: 'btn btn--xs', type: 'button', onclick: () => promptEditSeason(season).then(() => renderSeasons(root)) }, '编辑'),
           h(
             'button',
             {
+              'data-write': '',
               class: 'btn btn--xs btn--danger',
               type: 'button',
               onclick: async () => {

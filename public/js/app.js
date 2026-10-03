@@ -203,6 +203,12 @@ async function boot() {
     return;
   }
 
+  // 网页端只读：显示顶部提示条
+  if (store.readonly) {
+    const banner = document.getElementById('roBanner');
+    if (banner) banner.hidden = false;
+  }
+
   // 导航
   document.querySelectorAll('#tabs .tab').forEach((btn) => {
     btn.addEventListener('click', () => setRoute(btn.dataset.route));
