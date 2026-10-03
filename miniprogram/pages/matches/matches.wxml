@@ -1,0 +1,14 @@
+<view class="page">
+  <view class="card title">对局（{{matches.length}}）</view>
+  <view wx:for="{{matches}}" wx:key="id" class="card">
+    <view class="row-between">
+      <text class="name">{{item.season_name}} · {{item.played_at}}</text>
+      <text class="muted">{{item.deck_count}}副</text>
+    </view>
+    <view wx:for="{{item.camps}}" wx:for-item="c" wx:key="id" class="camp-line">
+      <text>{{c.name}}：{{c.total_score}} 分</text>
+      <text wx:if="{{c.is_winner}}" class="win">🏆</text>
+    </view>
+  </view>
+  <view wx:if="{{!matches.length && !loading}}" class="empty">暂无对局，去「计分」录入一局</view>
+</view>

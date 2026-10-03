@@ -1,0 +1,9 @@
+<view class="page">
+  <view class="card title">高光时刻（{{highlights.length}}）</view>
+  <view wx:for="{{highlights}}" wx:key="id" class="card">
+    <view class="name">{{item.title}}</view>
+    <view wx:if="{{item.content}}" class="muted">{{item.content}}</view>
+    <view class="muted">{{item.kind}} · {{item.happened_on}}</view>
+  </view>
+  <view wx:if="{{!highlights.length && !loading}}" class="empty">暂无高光</view>
+</view>

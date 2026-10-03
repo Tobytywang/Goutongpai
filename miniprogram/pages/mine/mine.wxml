@@ -1,0 +1,49 @@
+<view class="page">
+  <view class="card">
+    <view class="title">当前赛季</view>
+    <picker wx:if="{{seasons.length}}" range="{{seasons}}" range-key="name" value="{{currentSeasonIndex}}" bindchange="onSeasonChange">
+      <view class="picker">{{seasons[currentSeasonIndex].name}} ▾</view>
+    </picker>
+    <view wx:else class="muted">还没有赛季，先在下方创建</view>
+  </view>
+
+  <view class="card">
+    <view class="row-between">
+      <view class="title">选手（{{players.length}}）</view>
+      <button class="btn-primary mini" bindtap="togglePlayerForm">+ 新建</button>
+    </view>
+    <view wx:if="{{showPlayerForm}}" class="form">
+      <input class="input" placeholder="昵称" value="{{newPlayerName}}" bindinput="onPlayerName" />
+      <input class="input" placeholder="打法标签（可选）" value="{{newPlayerStyle}}" bindinput="onPlayerStyle" />
+      <button class="btn-primary" bindtap="submitPlayer">保存</button>
+    </view>
+    <view wx:for="{{players}}" wx:key="id" class="list-item">
+      <view>
+        <text class="name">{{item.name}}</text>
+        <text wx:if="{{item.style}}" class="muted"> · {{item.style}}</text>
+      </view>
+      <text wx:if="{{item.active}}" class="tag">启用</text>
+    </view>
+    <view wx:if="{{!players.length}}" class="empty">暂无选手</view>
+  </view>
+
+  <view class="card">
+    <view class="row-between">
+      <view class="title">赛季（{{seasons.length}}）</view>
+      <button class="btn-primary mini" bindtap="toggleSeasonForm">+ 新建</button>
+    </view>
+    <view wx:if="{{showSeasonForm}}" class="form">
+      <input class="input" placeholder="赛季名称" value="{{newSeasonName}}" bindinput="onSeasonName" />
+      <picker range="{{deckOptions}}" value="{{deckIndex}}" bindchange="onDeckChange">
+        <view class="picker">牌副数：{{deckOptions[deckIndex]}} ▾</view>
+      </picker>
+      <button class="btn-primary" bindtap="submitSeason">创建</button>
+    </view>
+    <view wx:for="{{seasons}}" wx:key="id" class="list-item">
+      <text class="name">{{item.name}}</text>
+      <text class="muted">{{item.deck_count}}副 · {{item.status === 'active' ? '进行中' : '已归档'}}</text>
+    </view>
+  </view>
+
+  <view class="card muted">登录身份：{{openidMasked}}</view>
+</view>

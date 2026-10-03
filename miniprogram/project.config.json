@@ -1,0 +1,22 @@
+{
+  "description": "沟通牌小程序（复用现有 Node 服务端，Web/小程序两端互通）",
+  "packOptions": {
+    "ignore": []
+  },
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "newFeature": false,
+    "nodeModules": true,
+    "checkSiteMap": true,
+    "uploadWithSourceMap": true,
+    "compileHotReLoad": true
+  },
+  "compileType": "miniprogram",
+  "appid": "wxYOUR_APPID_HERE",
+  "projectname": "goutongpai-miniprogram",
+  "condition": {}
+}

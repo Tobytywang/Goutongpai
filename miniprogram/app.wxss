@@ -1,0 +1,96 @@
+/* 全局变量与基础样式（主题色沿用 Web 端 #0f5132） */
+page {
+  --color-primary: #0f5132;
+  --color-primary-light: #e7f3ec;
+  --color-text: #323233;
+  --color-text-secondary: #969799;
+  --color-bg: #f5f5f5;
+  --color-danger: #ee0a24;
+  --color-win: #07c160;
+  --font-size-sm: 24rpx;
+  --font-size-base: 28rpx;
+  --font-size-lg: 34rpx;
+  --spacing: 24rpx;
+  --radius: 16rpx;
+}
+
+page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-bg);
+  box-sizing: border-box;
+}
+
+view, text, image, button {
+  box-sizing: border-box;
+}
+
+/* 通用卡片 */
+.card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: var(--spacing);
+  margin: var(--spacing);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 主按钮 */
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: var(--radius);
+  font-size: var(--font-size-base);
+}
+
+.btn-primary[disabled] {
+  background: #b9c9c0;
+  color: #fff;
+}
+
+/* 文本辅助 */
+.muted {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+/* 安全区适配 */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 空状态 */
+.empty {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: 80rpx 0;
+  font-size: var(--font-size-sm);
+}
+
+/* 通用布局类（所有页面可用） */
+.row-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx; }
+.mini { font-size: 24rpx; padding: 6rpx 20rpx; margin: 0; line-height: 1.6; }
+.form { margin-top: 16rpx; }
+.input { background: #f5f5f5; border-radius: 12rpx; padding: 16rpx; margin-bottom: 16rpx; font-size: 28rpx; }
+.picker { background: #f5f5f5; border-radius: 12rpx; padding: 16rpx; margin-bottom: 12rpx; font-size: 28rpx; }
+.picker.sm { margin-bottom: 0; padding: 12rpx; flex: 1; }
+.list-item { display: flex; justify-content: space-between; align-items: center; padding: 18rpx 0; border-top: 1rpx solid #f0f0f0; }
+.name { font-weight: 500; }
+.tag { font-size: 22rpx; color: #07c160; background: #e7f3ec; padding: 4rpx 12rpx; border-radius: 8rpx; }
+.camp-name { font-weight: 600; font-size: 30rpx; flex: 1; }
+.del-text { color: #ee0a24; font-size: 24rpx; margin-left: 16rpx; }
+.player-row { display: flex; align-items: center; gap: 12rpx; padding: 14rpx 0; border-top: 1rpx solid #f0f0f0; }
+.score-input { width: 110rpx; background: #f5f5f5; border-radius: 10rpx; padding: 12rpx; text-align: center; }
+.tap { font-size: 24rpx; color: #0f5132; }
+.del { color: #ee0a24; font-size: 28rpx; padding: 0 8rpx; }
+.btn-add { font-size: 24rpx; color: #0f5132; background: #e7f3ec; border-radius: 10rpx; margin-top: 12rpx; padding: 10rpx; }
+.camp-result { margin-top: 12rpx; font-size: 26rpx; display: flex; gap: 16rpx; align-items: center; }
+.win { color: #07c160; font-weight: 600; }
+.warn { color: #ee0a24; font-size: 24rpx; margin-top: 8rpx; }
+.submit { margin: 24rpx; }
+.camp-line { display: flex; justify-content: space-between; padding: 10rpx 0; border-top: 1rpx solid #f5f0f0; font-size: 26rpx; }

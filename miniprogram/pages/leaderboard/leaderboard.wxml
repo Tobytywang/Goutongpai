@@ -1,0 +1,8 @@
+<view class="page">
+  <view class="card title">排行榜（按累计得分）</view>
+  <view wx:for="{{rankings}}" wx:key="id" class="list-item">
+    <text class="name">{{index + 1}}. {{item.name}}</text>
+    <text class="muted">{{item.total}}分 · 胜{{item.wins}} · MVP{{item.mvp}}</text>
+  </view>
+  <view wx:if="{{!rankings.length && !loading}}" class="empty">暂无数据，先去录入对局</view>
+</view>

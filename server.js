@@ -132,6 +132,7 @@ function serveFile(res, filePath, { cache = false } = {}) {
 
 const routes = [
   ['GET', /^\/api\/health$/, () => ({ ok: true, time: db.now() })],
+  ['POST', /^\/api\/auth\/login$/, (ctx) => api.wxLogin(ctx.body)],
   ['GET', /^\/api\/bootstrap$/, () => api.bootstrap()],
 
   ['POST', /^\/api\/players$/, (ctx) => api.createPlayer(ctx.body)],
