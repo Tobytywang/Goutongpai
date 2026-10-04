@@ -216,10 +216,9 @@ function detailBlock(match, root) {
       'div',
       { style: { marginTop: '14px', display: 'flex', justifyContent: 'flex-end' } },
       h(
-            h(
-          'button',
-          {
-            'data-write': '',
+        'button',
+        {
+          'data-write': '',
             class: 'btn btn--sm btn--danger',
             type: 'button',
             onclick: async () => {
