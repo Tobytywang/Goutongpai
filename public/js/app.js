@@ -3,7 +3,6 @@
 import { store } from './store.js';
 import { h, notifyErr } from './util.js';
 
-import { renderScoring } from './views/scoring.js';
 import { renderDashboard } from './views/dashboard.js';
 import { renderLeaderboard } from './views/leaderboard.js';
 import { renderMatches } from './views/matches.js';
@@ -12,7 +11,6 @@ import { renderHighlights } from './views/highlights.js';
 import { renderSeasons } from './views/seasons.js';
 
 const ROUTES = {
-  scoring: renderScoring,
   dashboard: renderDashboard,
   leaderboard: renderLeaderboard,
   matches: renderMatches,
@@ -21,7 +19,7 @@ const ROUTES = {
   seasons: renderSeasons,
 };
 
-const DEFAULT_ROUTE = 'scoring';
+const DEFAULT_ROUTE = 'matches';
 
 /** 各页面自己负责重绘，这里只同步顶栏与导航高亮 */
 function paint() {
@@ -201,12 +199,6 @@ async function boot() {
     root.innerHTML = '';
     root.append(errorScreen(err));
     return;
-  }
-
-  // 网页端只读：显示顶部提示条
-  if (store.readonly) {
-    const banner = document.getElementById('roBanner');
-    if (banner) banner.hidden = false;
   }
 
   // 导航

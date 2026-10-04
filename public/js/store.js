@@ -26,7 +26,7 @@ export const store = {
    * 顶栏显式选赛季时会被重置 —— 否则用户切了赛季，列表却因为「全部赛季」仍勾着而不变。
    */
   scopeAll: false,
-  route: 'scoring',
+  route: 'matches',
   ready: false,
   /** 网页端是否只读（由后端 bootstrap.meta.webReadonly 决定） */
   readonly: false,
