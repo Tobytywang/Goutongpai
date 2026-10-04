@@ -432,6 +432,7 @@ a {
 /* ---------------------------------------------------------------- 布局 */
 
 .view {
+  width: 100%;
   max-width: var(--maxw);
   margin: 0 auto;
   padding: 22px 18px 64px;
@@ -551,6 +552,7 @@ a {
 }
 
 .footer {
+  width: 100%;
   max-width: var(--maxw);
   margin: auto auto 0;
   padding: var(--sp-4) var(--sp-4) 34px;
