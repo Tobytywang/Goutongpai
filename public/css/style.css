@@ -278,6 +278,41 @@ a {
 
 .topbar__right {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 顶栏「反馈」入口：与赛季胶囊同款风格，指向 GitHub Issues */
+.feedback-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14);
+  font-size: var(--fs-xs);
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s ease, box-shadow .15s ease;
+}
+
+.feedback-link:hover {
+  background: rgba(255, 255, 255, .18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .24);
+}
+
+.feedback-link:focus-visible {
+  outline: 2px solid var(--felt-300);
+  outline-offset: 2px;
+}
+
+.feedback-link__icon {
+  font-size: var(--fs-micro);
+  transform: rotate(0deg);
+  opacity: .85;
 }
 
 .season-pill {
