@@ -392,7 +392,7 @@ export function renderScoring(root) {
 
   function unassignedPlayers() {
     const assigned = new Set(draft.camps.flatMap((c) => c.players.map((p) => p.player_id)));
-    return store.players.filter((p) => p.active && !assigned.has(p.id));
+    return store.players.filter((p) => !assigned.has(p.id));
   }
 
   function rebuildAllSelects() {

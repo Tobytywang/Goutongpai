@@ -154,16 +154,12 @@ export function promptEditPlayer(player) {
       title: `编辑玩家 · ${player.name}`,
       submitText: '保存',
       fields: [
-        { name: 'name', label: '昵称 *', value: player.name },
-        {
-          name: 'active',
-          label: '在役（可被选入新对局）',
-          type: 'checkbox',
-          value: !!player.active,
-        },
+        { name: 'name', label: '昵称 *', value: player.name, maxlength: '6' },
         { name: 'bio', label: '个性签名', type: 'textarea', full: true, rows: 3, value: player.bio || '' },
       ],
       onSubmit: async (values) => {
+        if (!values.name) throw new Error('昵称不能为空');
+        if (values.name.length > 6) throw new Error('昵称最多6个字符');
         await api.updatePlayer(player.id, values);
         await store.load();
         notifyOk('玩家资料已更新');

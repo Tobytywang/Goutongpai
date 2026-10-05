@@ -11,8 +11,7 @@ export function renderDashboard(root) {
   const season = store.currentSeason;
   const overview = computeOverview(store.matches, store.players, seasonId);
   const stats = computePlayerStats(store.matches, store.players, seasonId);
-  const activeIds = new Set(store.players.filter((p) => p.active).map((p) => p.id));
-  const ranked = sortStats(stats.filter((r) => activeIds.has(r.player_id) && r.games > 0), 'wins');
+  const ranked = sortStats(stats.filter((r) => r.games > 0), 'wins');
 
   const recentMatches = store.matchesOfSeason(seasonId).slice(0, 6);
   const recentHighlights = store.highlightsOfSeason(seasonId).slice(0, 4);

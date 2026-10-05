@@ -93,9 +93,7 @@ export function renderLeaderboard(root) {
     const allRows = computePlayerStats(store.matches, store.players, seasonId);
     const overview = computeOverview(store.matches, store.players, seasonId);
 
-    // 只保留在役玩家参与排名（停用玩家仍可在玩家页查看）
-    const activeIds = new Set(store.players.filter((p) => p.active).map((p) => p.id));
-    let rows = allRows.filter((r) => activeIds.has(r.player_id));
+    let rows = allRows.slice();
 
     if (ui.minGames > 0) rows = rows.filter((r) => r.games >= ui.minGames);
     if (ui.keyword) {

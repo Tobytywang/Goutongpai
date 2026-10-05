@@ -139,7 +139,7 @@ export function renderPlayers(root) {
 
     return h(
       'article',
-      { class: `player-card${player.active ? '' : ' is-inactive'}` },
+      { class: 'player-card' },
       cover,
       h(
         'div',
