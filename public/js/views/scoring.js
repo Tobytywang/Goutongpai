@@ -339,6 +339,7 @@ export function renderScoring(root) {
   const resultBar = h('div', { class: 'result-bar' });
 
   const hlPanel = buildHighlightsPanel();
+  const alertBar = h('div', { class: 'alert-bar' });
 
   const card = h(
     'div',
@@ -355,6 +356,8 @@ export function renderScoring(root) {
     actionBar,
     // 高光录入面板：点「+ 新增高光」才展开，收起时靠上面的「高光待存」提示不漏记
     hlPanel.el,
+    // 录入校验提示条：实时显示错误/警告，错误时禁用「保存本局」
+    alertBar,
     resultBar
   );
 
@@ -366,7 +369,7 @@ export function renderScoring(root) {
         'div',
         {},
         h('h1', {}, '计分台'),
-        h('div', { class: 'sub' }, '牌库总分 = 牌副数 × 100；某阵营把「出完牌的人」的分数加起来，超过一半即获胜。')
+        h('div', { class: 'sub' }, '牌库总分 = 牌副数 × 100；把「出完牌的人」的分数加起来超过一半即获胜；若某阵营全员出完、且对手没全出完，也算赢。')
       ),
       h(
         'div',
@@ -803,19 +806,45 @@ export function renderScoring(root) {
     };
   }
 
+  /* ------------------------------------------------------- 本地结算（与后端同口径） */
+
+  /**
+   * 本地预览用的本局结算：与后端 lib/score.js 同口径
+   * （牌库总分 = 副数×100；获胜线 = 一半且需严格超过；
+   *   全员出完且对手未全员出完即胜）。
+   */
+  function computeLocalResult() {
+    const line = winLineOf(draft.deckCount);
+    const perCamp = draft.camps.map((camp) => {
+      const players = camp.players;
+      const banked = players.filter((p) => p.finished).reduce((s, p) => s + num(p.score), 0);
+      const wasted = players.filter((p) => !p.finished).reduce((s, p) => s + num(p.score), 0);
+      const finishedCount = players.filter((p) => p.finished).length;
+      const allFinished = players.length > 0 && players.every((p) => p.finished);
+      return { banked, wasted, finishedCount, allFinished, isWinner: banked > line };
+    });
+    // 「全员出完即胜」仅在「存在对手阵营未全员出完」时成立
+    perCamp.forEach((c, i) => {
+      if (c.allFinished && perCamp.some((o, j) => j !== i && !o.allFinished)) c.isWinner = true;
+    });
+    return { line, perCamp };
+  }
+
   /* ------------------------------------------------------- 刷新计算 */
 
   function refresh() {
     const deckTotal = deckTotalOf(draft.deckCount);
-    const line = winLineOf(draft.deckCount);
+    const { line, perCamp } = computeLocalResult();
 
     campViews.forEach((cv, i) => {
       const camp = draft.camps[i];
       if (!camp) return;
-      const banked = campBanked(camp);
-      const wasted = campWasted(camp);
-      const finishedCount = camp.players.filter((p) => p.finished).length;
-      const isWin = banked > line;
+      const r = perCamp[i] || { banked: 0, wasted: 0, finishedCount: 0, isWinner: false };
+      const banked = r.banked;
+      const wasted = r.wasted;
+      const finishedCount = r.finishedCount;
+      const isWin = r.isWinner;
+      const winByFinish = isWin && banked <= line;
 
       cv.totalEl.textContent = banked;
       cv.totalEl.style.color = isWin ? camp.color : '';
@@ -827,9 +856,9 @@ export function renderScoring(root) {
         appendAll(
           cv.metaEl,
           h('span', {}, `出完 ${finishedCount}/${camp.players.length} 人`),
-          wasted > 0 ? h('span', { class: 'muted' }, `· 作废 ${wasted} 分`) : null,
+          wasted > 0 ? h('span', { class: 'muted' }, `· 未出完 ${wasted} 分`) : null,
           isWin
-            ? h('span', { class: 'win-flag' }, '🏆 已过线')
+            ? h('span', { class: 'win-flag' }, winByFinish ? '🏆 全员出完' : '🏆 已过线')
             : h('span', { class: 'win-flag', style: { color: 'var(--ink-400)' } }, `需 > ${line}`)
         );
       }
@@ -897,13 +926,51 @@ export function renderScoring(root) {
 
   function paintResult(deckTotal, line) {
     const entries = draft.camps.flatMap((c) => c.players);
+    const { perCamp } = computeLocalResult();
     const distributed = entries.reduce((s, p) => s + num(p.score), 0);
     const wasted = entries.filter((p) => !p.finished).reduce((s, p) => s + num(p.score), 0);
     const unclaimed = deckTotal - distributed;
-    const winners = draft.camps.filter((c) => campBanked(c) > line);
-    const canSave = draft.camps.length >= 2 && draft.camps.every((c) => c.players.length > 0);
+    const winners = perCamp.filter((c) => c.isWinner);
+
+    /* ---- 录入校验：拦截无效对局 ---- */
+    const errors = [];
+    const warnings = [];
+    if (draft.camps.length < 2) errors.push('至少需要 2 个阵营');
+    if (draft.camps.some((c) => c.players.length === 0)) errors.push('每个阵营至少要有 1 名玩家');
+    if (distributed > deckTotal) errors.push(`总录入分数 ${distributed} 超过牌库总分 ${deckTotal}，请核对分数`);
+    const seen = new Set();
+    for (const c of draft.camps) {
+      for (const p of c.players) {
+        const player = store.playerById(p.player_id);
+        if (seen.has(p.player_id)) errors.push('同一名玩家不能出现在多个阵营');
+        seen.add(p.player_id);
+        if (num(p.score) > deckTotal) errors.push(`「${player ? player.name : '?'}」的单人分数 ${num(p.score)} 超过牌库总分`);
+      }
+    }
+    if (winners.length >= 1 && unclaimed > 0) warnings.push(`还有 ${unclaimed} 分未录入，但已分出胜负，可能漏录`);
+    if (winners.length > 1) warnings.push('多个阵营同时判定获胜，请核对分数');
+
+    const canSave =
+      entries.length > 0 &&
+      errors.length === 0 &&
+      draft.camps.length >= 2 &&
+      draft.camps.every((c) => c.players.length > 0);
+
+    // 校验提示条
+    alertBar.innerHTML = '';
+    for (const msg of errors) alertBar.append(h('div', { class: 'msg err' }, '⛔ ' + msg));
+    for (const msg of warnings) alertBar.append(h('div', { class: 'msg warn' }, '⚠️ ' + msg));
 
     resultBar.innerHTML = '';
+
+    const campName = (r) => {
+      const idx = perCamp.indexOf(r);
+      return draft.camps[idx] ? draft.camps[idx].name : '';
+    };
+    const campColor = (r) => {
+      const idx = perCamp.indexOf(r);
+      return draft.camps[idx] ? draft.camps[idx].color : '';
+    };
 
     let text;
     if (entries.length === 0) {
@@ -914,32 +981,33 @@ export function renderScoring(root) {
         'span',
         {},
         '🏆 ',
-        h('span', { class: 'ok', style: { color: w.color } }, w.name),
-        ` 以 ${campBanked(w)} 分拿下本局 `,
+        h('span', { class: 'ok', style: { color: campColor(w) } }, campName(w)),
+        ` 以 ${w.banked} 分拿下本局 `,
         h('span', { class: 'muted' }, `（获胜线 ${line} 分，牌库总分 ${deckTotal} 分）`)
       );
     } else if (winners.length === 0) {
-      const best = draft.camps
-        .map((c) => ({ c, v: campBanked(c) }))
+      const best = perCamp
+        .map((c, i) => ({ c, i, v: c.banked }))
         .sort((a, b) => b.v - a.v)[0];
       text = h(
         'span',
         {},
         '⚖️ ',
         h('span', { class: 'muted' }, '还没有阵营超过获胜线'),
-        best && best.v > 0 ? h('span', { class: 'muted' }, `　最接近的是 ${best.c.name}（${best.v} 分，差 ${line - best.v + 1} 分）`) : null
+        best && best.v > 0
+          ? h('span', { class: 'muted' }, `　最接近的是 ${draft.camps[best.i].name}（${best.v} 分，差 ${line - best.v + 1} 分）`)
+          : null
       );
     } else {
       text = h(
         'span',
         { style: { color: 'var(--warn)' } },
         '⚠️ ',
-        `${winners.map((c) => c.name).join('、')} 同时超过获胜线，请核对分数 —— 牌库总分只有 ${deckTotal} 分。`
+        `${winners.map((c) => campName(c)).join('、')} 同时判定获胜，请核对分数 —— 牌库总分只有 ${deckTotal} 分。`
       );
     }
 
     resultBar.append(
-      // 牌库口径（原顶部读数条）下移到这一行：它是「保存前最后核一眼」的数
       h(
         'div',
         { class: 'facts' },
@@ -949,10 +1017,9 @@ export function renderScoring(root) {
       h('span', { class: 'result-bar__text' }, text),
       h(
         'span',
-        { class: 'muted mono', style: { fontSize: '12px' }, title: '已录入的分 = 计入阵营的有效分 + 未出完牌作废的分' },
-        `已录 ${distributed} / ${deckTotal}　作废 ${wasted}　未录入 ${unclaimed}`
+        { class: 'muted mono', style: { fontSize: '12px' }, title: '已录入的分 = 出完牌的有效分 + 未出完牌的分数' },
+        `已录 ${distributed} / ${deckTotal}　未出完 ${wasted}　未录入 ${unclaimed}`
       ),
-      // 清空重录贴着「保存本局」放：都是本局级动作，但破坏性的一个在左、主按钮仍在最右
       h('button', { class: 'btn', type: 'button', onclick: clearEntry }, '清空重录'),
       h(
         'button',
@@ -962,7 +1029,8 @@ export function renderScoring(root) {
     );
 
     if (!canSave) {
-      resultBar.querySelector('.btn--primary').title = '每个阵营至少要有 1 名玩家';
+      const btn = resultBar.querySelector('.btn--primary');
+      if (btn) btn.title = errors.length ? errors[0] : '每个阵营至少要有 1 名玩家';
     }
   }
 
@@ -1014,6 +1082,11 @@ export function renderScoring(root) {
       for (const c of payload.camps) {
         if (c.players.length === 0) throw new Error(`「${c.name}」还没有玩家，请至少放 1 名玩家`);
       }
+
+      // 第二道保险：总录入分数不可超过牌库总分（牌库只有这么些分）
+      const total = payload.camps.flatMap((c) => c.players).reduce((s, p) => s + p.score, 0);
+      const cap = payload.deck_count * 100;
+      if (total > cap) throw new Error(`总录入分数 ${total} 超过牌库总分 ${cap}，请核对分数`);
 
       const saved = await api.createMatch(payload);
       const line = saved.win_line;
