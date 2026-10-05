@@ -2134,23 +2134,13 @@ th.num {
     gap: 3px;
     min-height: 44px;
     padding: 5px 2px;
-    font-size: 0; /* 隐藏原始长名（DOM 保留，屏幕阅读器仍读全名），用 ::after 显示等宽短名 */
+    /* 直接显示按钮自身的短名（对局/高光/排名/玩家/赛季），
+       不再用 ::after 按位置硬编码——那会随 tab 增删而整体错位 */
+    font-size: var(--fs-micro);
     line-height: 1.1;
     border-radius: 11px;
     color: rgba(255, 255, 255, .72);
   }
-
-  .tab::after {
-    font-size: var(--fs-micro);
-    letter-spacing: .02em;
-  }
-
-  .tab:nth-child(1)::after { content: '计分'; }
-  .tab:nth-child(2)::after { content: '对局'; }
-  .tab:nth-child(3)::after { content: '高光'; }
-  .tab:nth-child(4)::after { content: '排名'; }
-  .tab:nth-child(5)::after { content: '选手'; }
-  .tab:nth-child(6)::after { content: '赛季'; }
 
   .tab.is-active {
     background: rgba(255, 255, 255, .16);
