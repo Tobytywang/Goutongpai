@@ -12,15 +12,14 @@
      wins         胜局数：所在阵营在该局判为获胜的局数量。同一局最多计 1。
      finishedGames 出完牌局数：把牌出完的局数量。
 
-   【分数口径】—— 三档分必须能对上账
-     points       个人累计分 = Σ 该玩家在所有出场局里录得的分数（不管出没出完）
-     banked       入账分   = Σ 仅在「已出完牌」的局里录得的分数（这部分才参与阵营胜负判定）
-     wasted       作废分   = points − banked（没出完牌，分白拿了）
-     闭合关系：banked + wasted === points   ← 页面上会显式校验
+   【分数口径】—— 只算一种分
+     banked(总得分) = Σ 仅在「已出完牌」的局里录得的分数（这部分才参与阵营胜负判定）
+     wasted(未出完分) = 未出完牌的分数之和（仅用于单局对账，不计入玩家成绩）
+     未出完牌的分数不计入玩家成绩，仅用于单局对账（防漏录）。
 
    【单局账目闭合】—— 用来发现漏录
      每局把牌库总分拆成三段，理论上有：
-       banked(各阵营总分之和) + wasted(作废分) + unclaimed(未录入分) === deck_total
+       banked(各阵营总分之和) + wasted(未出完牌分数) + unclaimed(未录入分) === deck_total
      unclaimed 不为 0 说明还有分没录进来（可能牌没打完/漏录），页面会标出来。
    ========================================================================== */
 
@@ -75,9 +74,7 @@ export function computePlayerStats(matches, players, seasonId = null) {
         games: 0,
         wins: 0,
         finishedGames: 0,
-        points: 0,
         banked: 0,
-        wasted: 0,
         mvp: 0,
         best: 0,
         campWin: new Map(), // 阵营名 → 出场局数，用于「最常搭档」
@@ -93,12 +90,9 @@ export function computePlayerStats(matches, players, seasonId = null) {
     for (const entry of entriesOf(m)) {
       const s = ensure(entry.player_id);
       s.games += 1;
-      s.points += entry.score;
       if (entry.finished) {
         s.banked += entry.score;
         s.finishedGames += 1;
-      } else {
-        s.wasted += entry.score;
       }
       if (entry.camp_is_winner) s.wins += 1;
       if (entry.is_mvp) s.mvp += 1;
@@ -114,7 +108,7 @@ export function computePlayerStats(matches, players, seasonId = null) {
     const s = map.get(player.id);
     const winRate = s.games ? s.wins / s.games : 0;
     const finishRate = s.games ? s.finishedGames / s.games : 0;
-    const avg = s.games ? s.points / s.games : 0;
+    const avg = s.games ? s.banked / s.games : 0;
 
     let mainCamp = null;
     let mainCampCount = 0;
@@ -133,9 +127,7 @@ export function computePlayerStats(matches, players, seasonId = null) {
       wins: s.wins,
       losses: s.games - s.wins,
       finishedGames: s.finishedGames,
-      points: s.points,
       banked: s.banked,
-      wasted: s.wasted,
       mvp: s.mvp,
       best: s.best,
       winRate,
@@ -143,8 +135,6 @@ export function computePlayerStats(matches, players, seasonId = null) {
       avg,
       mainCamp,
       lastPlayed: s.lastPlayed,
-      /** 自检：入账分 + 作废分 必须等于累计分 */
-      coherent: s.banked + s.wasted === s.points,
     };
   });
 
@@ -155,15 +145,14 @@ export function computePlayerStats(matches, players, seasonId = null) {
 export const SORT_KEYS = [
   { key: 'wins', label: '胜局', hint: '所在阵营获胜的局数', numeric: true },
   { key: 'winRate', label: '胜率', hint: '胜局 ÷ 出场局数', numeric: true, percent: true },
-  { key: 'banked', label: '入账分', hint: '只在「把牌出完」的局里拿到的分数之和，这部分才参与胜负判定', numeric: true },
-  { key: 'points', label: '累计分', hint: '所有出场局里拿到的分数之和，包含没出完牌而作废的分', numeric: true },
-  { key: 'avg', label: '场均分', hint: '累计分 ÷ 出场局数', numeric: true },
+  { key: 'banked', label: '总得分', hint: '只在「把牌出完」的局里拿到的分数之和，这部分才参与胜负判定', numeric: true },
+  { key: 'avg', label: '场均得分', hint: '总得分 ÷ 出场局数', numeric: true },
   { key: 'finishRate', label: '出完率', hint: '把牌出完的局数 ÷ 出场局数', numeric: true, percent: true },
   { key: 'mvp', label: 'MVP 次数', hint: '被标记为本局 MVP 的次数', numeric: true },
   { key: 'games', label: '出场', hint: '参与过的对局数', numeric: true },
 ];
 
-/** 按指定键排序（降序），同值再按胜局、出场数、入账分兜底，保证顺序稳定 */
+/** 按指定键排序（降序），同值再按胜局、出场数、总得分兜底，保证顺序稳定 */
 export function sortStats(rows, key = 'wins') {
   const copy = rows.slice();
   copy.sort((a, b) => {
@@ -223,7 +212,7 @@ export function computeOverview(matches, players, seasonId = null) {
     unclaimed,
     deckTotal,
     unresolvedMatches: unresolved,
-    /** 账目闭合校验：入账 + 作废 + 未录入 === 牌库总分合计 */
+    /** 账目闭合校验：总得分 + 未出完 + 未录入 === 牌库总分合计 */
     balanced: banked + wasted + unclaimed === deckTotal,
     camps: Array.from(campTally.values()).sort((a, b) => b.wins - a.wins || b.plays - a.plays),
     latestMatch: scope[0] || null,

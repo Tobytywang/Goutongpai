@@ -76,7 +76,7 @@ export function renderSeasons(root) {
       }
     }
 
-    // MVP：该赛季被标记为本局 MVP 次数最多的玩家（同次数按胜局、入账分兜底）
+    // MVP：该赛季被标记为本局 MVP 次数最多的玩家（同次数按胜局、总得分兜底）
     const ranked = sortStats(computePlayerStats(matches, store.players, season.id), 'mvp');
     const mvpRow = ranked.find((r) => r.mvp > 0);
     const mvpText = mvpRow ? `${mvpRow.name} · ${mvpRow.mvp} 次` : '—';

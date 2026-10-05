@@ -153,12 +153,9 @@ export function renderPlayers(root) {
           h('div', { class: 'player-card__stat' }, h('b', {}, s.games), '出场'),
           h('div', { class: 'player-card__stat' }, h('b', {}, s.wins), '胜局'),
           h('div', { class: 'player-card__stat' }, h('b', {}, pct(s.wins, s.games)), '胜率'),
-          h('div', { class: 'player-card__stat' }, h('b', {}, s.banked), '入账分')
+          h('div', { class: 'player-card__stat' }, h('b', {}, s.banked), '总得分')
         ),
         actions,
-        player.active
-          ? null
-          : h('div', { style: { marginTop: '8px' } }, h('span', { class: 'badge' }, '已停用 · 不出现在计分台')),
         player.created_at ? h('div', { class: 'muted', style: { fontSize: '11px', marginTop: '8px' } }, `登记于 ${fmtDate(player.created_at)}`) : null
       )
     );

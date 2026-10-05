@@ -157,7 +157,7 @@ function detailBlock(match, root) {
 
   // 阵营横向并排：2 个各一半、3~4 个等分（窄屏由媒体查询回落单列）。
   // 列内空间有限，所以每列不再用四列表格，改成「一分一人」的紧凑行：
-  // 头像 · 昵称（可省略号截断）· MVP · 分数 · 计入/作废
+  // 头像 · 昵称 · MVP · 分数 · 出完/未出完
   const campsRow = h('div', {
     class: 'match-camps',
     style: { '--camp-n': String(Math.max(camps.length, 1)) },
@@ -171,13 +171,13 @@ function detailBlock(match, root) {
         'div',
         {
           class: `mcamp-row${entry.finished ? '' : ' is-wasted'}`,
-          title: entry.finished ? '出完牌：分数计入阵营总分' : '未出完牌：分数作废',
+          title: entry.finished ? '已出完牌：分数计入阵营总分' : '未出完牌：分数不计入阵营总分',
         },
         player ? avatarEl(player, 'sm') : null,
         h('span', { class: 'mcamp-row__name', title: name }, name),
         entry.is_mvp ? h('span', { class: 'badge badge--mvp', title: '本局 MVP' }, '★ MVP') : null,
         h('span', { class: 'mcamp-row__score' }, String(entry.score)),
-        h('span', { class: `badge${entry.finished ? ' badge--felt' : ''}` }, entry.finished ? '计入' : '作废')
+        h('span', { class: `badge${entry.finished ? ' badge--felt' : ''}` }, entry.finished ? '出完' : '未出完')
       );
     });
 

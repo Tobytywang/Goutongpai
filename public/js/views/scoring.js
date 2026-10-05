@@ -164,7 +164,7 @@ function makeStepper({ id, label, value, min = 0, max = 99, onSet }) {
 function campBanked(camp) {
   return camp.players.filter((p) => p.finished).reduce((s, p) => s + num(p.score), 0);
 }
-/** 未出完牌而作废的分 */
+/** 未出完牌、不计入阵营总分的分数 */
 function campWasted(camp) {
   return camp.players.filter((p) => !p.finished).reduce((s, p) => s + num(p.score), 0);
 }

@@ -103,7 +103,7 @@ export function renderDashboard(root) {
                       'div',
                       { style: { textAlign: 'right' } },
                       h('div', { class: 'mono', style: { fontSize: '17px', fontWeight: '640' } }, String(r.wins)),
-                      h('div', { class: 'muted', style: { fontSize: '11px' } }, `入账 ${r.banked}`)
+                      h('div', { class: 'muted', style: { fontSize: '11px' } }, `总得分 ${r.banked}`)
                     )
                   )
                 )

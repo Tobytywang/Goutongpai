@@ -121,7 +121,7 @@ export function renderLeaderboard(root) {
           'div',
           { class: 'card__head' },
           h('h2', {}, '明细'),
-          h('span', { class: 'hint' }, `按「${sortMeta.label}」降序 · 同值依次比较胜局、出场、入账分`)
+          h('span', { class: 'hint' }, `按「${sortMeta.label}」降序 · 同值依次比较胜局、出场、总得分`)
         ),
         h(
           'div',
@@ -218,12 +218,10 @@ function buildTable(rows, sortMeta) {
     { key: 'games', label: '出场', cls: 'num', title: '参与过的对局数' },
     { key: 'wins', label: '胜局', cls: 'num', title: '所在阵营获胜的局数' },
     { key: 'winRate', label: '胜率', cls: 'num', title: '胜局 ÷ 出场' },
-    { key: 'banked', label: '入账分', cls: 'num', title: '只在把牌出完的局里拿到的分数之和' },
-    { key: 'points', label: '累计分', cls: 'num', title: '所有出场局的分数之和（含作废）' },
-    { key: 'wasted', label: '作废分', cls: 'num', title: '因为没把牌出完而白拿的分数' },
     { key: 'finishRate', label: '出完率', cls: 'num', title: '把牌出完的局数 ÷ 出场' },
-    { key: 'avg', label: '场均', cls: 'num', title: '累计分 ÷ 出场' },
-    { key: 'best', label: '单局最高', cls: 'num', title: '单局拿到的最高分' },
+    { key: 'banked', label: '总得分', cls: 'num', title: '只在把牌出完的局里拿到的分数之和' },
+    { key: 'avg', label: '场均得分', cls: 'num', title: '总得分 ÷ 出场' },
+    { key: 'best', label: '最高得分', cls: 'num', title: '单局拿到的最高得分' },
     { key: 'mvp', label: '★MVP', cls: 'num', title: '被标记为 MVP 的次数' },
     { key: 'mainCamp', label: '常驻阵营', cls: '', title: '出场次数最多的阵营' },
   ];
@@ -263,10 +261,8 @@ function buildTable(rows, sortMeta) {
             h('span', { class: 'progress', style: { width: '46px' } }, h('i', { style: { width: `${r.winRate * 100}%` } }))
           )
         ),
-        h('td', { class: 'num text-up', style: { fontWeight: '620' } }, String(r.banked)),
-        h('td', { class: 'num' }, String(r.points)),
-        h('td', { class: 'num muted' }, r.wasted ? String(r.wasted) : '0'),
         h('td', { class: 'num' }, pct(r.finishedGames, r.games)),
+        h('td', { class: 'num text-up', style: { fontWeight: '620' } }, String(r.banked)),
         h('td', { class: 'num' }, r.games ? r.avg.toFixed(1) : '—'),
         h('td', { class: 'num' }, String(r.best)),
         h('td', { class: 'num' }, r.mvp ? h('span', { class: 'badge badge--mvp' }, String(r.mvp)) : h('span', { class: 'muted' }, '—')),
@@ -289,11 +285,10 @@ function glossary() {
     ['出场', '该玩家参与过的对局数量。同一局只计 1 次。'],
     ['胜局', '所在阵营在该局被判获胜的局数。同一局最多计 1 次。'],
     ['胜率', '胜局 ÷ 出场。出场为 0 时不参与排名，显示「—」。'],
-    ['入账分', '只在「把牌出完」的局里拿到的分数之和。这部分分数才计入阵营总分、参与胜负判定。'],
-    ['累计分', '所有出场局里拿到的分数之和，包含因没出完牌而作废的部分。'],
-    ['作废分', '累计分 − 入账分。也就是「牌没出完、分数白拿」的那部分。'],
+    ['总得分', '只在「把牌出完」的局里拿到的分数之和。这部分分数才计入阵营总分、参与胜负判定。'],
     ['出完率', '把牌出完的局数 ÷ 出场。反映打法是否偏激进（压着不出 vs 抢着走）。'],
-    ['场均', '累计分 ÷ 出场。'],
+    ['场均得分', '总得分 ÷ 出场。'],
+    ['最高得分', '单局拿到的最高分数（无论该局是否出完牌，取分数最大的一局）。'],
     ['MVP 次数', '录入时被勾选 ★ 的次数由记分员主观判定，仅作荣誉记录，不影响胜负。'],
   ];
 
@@ -303,9 +298,7 @@ function glossary() {
     h(
       'p',
       { style: { fontSize: '13px', color: 'var(--ink-600)', marginBottom: '12px' } },
-      '每个玩家的三档分数满足恒等式，页面上的数字都能对上账：',
-      h('br'),
-      h('span', { class: 'mono', style: { fontSize: '13px' } }, '入账分 ＋ 作废分 ＝ 累计分')
+      '玩家成绩只统计「总得分」（出完牌拿到的分），页面上的数字都能对上账：'
     ),
     h(
       'div',
