@@ -154,17 +154,20 @@ export function renderLeaderboard(root) {
       'div',
       { class: 'page-head' },
       h('div', {}, h('h1', {}, '排行榜'), scopeLabelEl),
-      h('div', { class: 'head-actions' }, h('div', { class: 'search-box' }, searchInput))
+      h(
+        'div',
+        { class: 'head-actions' },
+        h('div', { class: 'search-box' }, searchInput),
+        h('label', { class: 'check' }, scopeCheck, h('span', {}, '全部赛季'))
+      )
     ),
 
     h(
       'div',
-      { class: 'lb-context' },
+      { class: 'head-filters' },
       h('span', { class: 'muted', style: { fontSize: '12px' } }, '排序依据'),
       sortSelect,
       hintBadge,
-      h('span', { style: { width: '10px' } }),
-      h('label', { class: 'check' }, scopeCheck, h('span', {}, '统计全部赛季')),
       h(
         'label',
         { class: 'check', title: '只统计出场数达到该值的玩家，避免 1 场 100% 胜率挤掉长期稳定的人' },

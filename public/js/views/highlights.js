@@ -98,6 +98,7 @@ export function renderHighlights(root) {
         'div',
         { class: 'head-actions' },
         h('div', { class: 'search-box' }, searchInput),
+        h('label', { class: 'check' }, scopeCheck, h('span', {}, '全部赛季')),
         h(
           'button',
           {
@@ -111,12 +112,7 @@ export function renderHighlights(root) {
       )
     ),
 
-    h(
-      'div',
-      { class: 'lb-context' },
-      kindSelect,
-      h('label', { class: 'check' }, scopeCheck, h('span', {}, '全部赛季'))
-    ),
+    h('div', { class: 'head-filters' }, kindSelect),
 
     listArea
   );

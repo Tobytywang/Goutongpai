@@ -26,7 +26,7 @@ export function renderPlayers(root) {
 
   const scopeToggle = h(
     'label',
-    { class: 'check' },
+    { class: 'check', title: '默认只看当前赛季，勾选后统计全部赛季' },
     h('input', {
       type: 'checkbox',
       checked: store.scopeAll,
@@ -35,7 +35,7 @@ export function renderPlayers(root) {
         paintList();
       },
     }),
-    h('span', {}, '统计全部赛季（默认只看当前赛季）')
+    h('span', {}, '全部赛季')
   );
 
   root.append(
@@ -52,6 +52,7 @@ export function renderPlayers(root) {
         'div',
         { class: 'head-actions' },
         h('div', { class: 'search-box' }, searchInput),
+        scopeToggle,
         h(
           'button',
           {
@@ -64,7 +65,6 @@ export function renderPlayers(root) {
         )
       )
     ),
-    h('div', { class: 'lb-context' }, scopeToggle),
     listWrap
   );
 
