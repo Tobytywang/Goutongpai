@@ -485,6 +485,7 @@ export function formModal({ title, fields, submitText = '保存', wide = false, 
         placeholder: f.placeholder || '',
         min: f.min,
         max: f.max,
+        maxlength: f.maxlength,
       });
     }
 

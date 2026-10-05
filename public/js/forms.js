@@ -52,7 +52,7 @@ export function promptNewPlayer({ onCreated, defaults = {} } = {}) {
       title: '新增玩家',
       submitText: '创建玩家',
       fields: [
-        { name: 'name', label: '昵称 *', value: defaults.name || '', placeholder: '例如：老王' },
+        { name: 'name', label: '昵称 *', value: defaults.name || '', placeholder: '例如：老王（最多6个字）', maxlength: '6' },
         {
           name: 'bio',
           label: '个性签名',
@@ -65,6 +65,7 @@ export function promptNewPlayer({ onCreated, defaults = {} } = {}) {
       ],
       onSubmit: async (values) => {
         if (!values.name) throw new Error('昵称不能为空');
+        if (values.name.length > 6) throw new Error('昵称最多6个字符');
         const player = await api.createPlayer(values);
         await store.load();
         notifyOk(`已创建玩家「${player.name}」，可到「玩家」页上传头像与照片`);
@@ -88,7 +89,7 @@ export function promptNewSeason({ onCreated } = {}) {
       title: '新建赛季',
       submitText: '创建赛季',
       fields: [
-        { name: 'name', label: '赛季名称 *', value: defaultName, placeholder: '例如：2026 秋季赛' },
+        { name: 'name', label: '赛季名称 *', value: defaultName, placeholder: '例如：2026 秋季赛（最多8个字）', maxlength: '8' },
         {
           name: 'started_on',
           label: '开始日期',
@@ -99,6 +100,7 @@ export function promptNewSeason({ onCreated } = {}) {
       ],
       onSubmit: async (values) => {
         if (!values.name) throw new Error('赛季名称不能为空');
+        if (values.name.length > 8) throw new Error('赛季名称最多8个字符');
         const season = await api.createSeason(values);
         await store.load();
         store.setSeason(season.id);
@@ -119,7 +121,7 @@ export function promptEditSeason(season) {
       title: `编辑赛季 · ${season.name}`,
       submitText: '保存',
       fields: [
-        { name: 'name', label: '赛季名称 *', value: season.name },
+        { name: 'name', label: '赛季名称 *', value: season.name, maxlength: '8' },
         {
           name: 'status',
           label: '状态',
@@ -136,6 +138,8 @@ export function promptEditSeason(season) {
         { name: 'note', label: '赛季说明', type: 'textarea', full: true, rows: 2, value: season.note || '' },
       ],
       onSubmit: async (values) => {
+        if (!values.name) throw new Error('赛季名称不能为空');
+        if (values.name.length > 8) throw new Error('赛季名称最多8个字符');
         await api.updateSeason(season.id, values);
         await store.load();
         notifyOk('赛季已更新');
