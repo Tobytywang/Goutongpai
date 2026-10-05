@@ -339,6 +339,17 @@ export function promptNewHighlight({ defaults = {} } = {}) {
    删除操作统一走这里，文案强调「不可恢复」并说清连带影响 */
 
 export async function confirmDeletePlayer(player) {
+  // 前端预判：有对局记录的玩家禁止删除（与后端规则一致，避免误弹确认框）
+  const played = store.matches.filter((m) =>
+    (m.camps || []).some((c) => (c.players || []).some((e) => e.player_id === player.id))
+  ).length;
+  if (played > 0) {
+    notifyErr(
+      `该玩家已有 ${played} 条对局记录，无法删除（删除会导致历史战绩不可逆丢失）。`
+    );
+    return false;
+  }
+
   const ok = await confirmDialog({
     title: `删除玩家「${player.name}」`,
     message:
@@ -353,7 +364,7 @@ export async function confirmDeletePlayer(player) {
     notifyOk('玩家已删除');
     return true;
   } catch (err) {
-    // 后端在「已有对局记录」时会拒绝，并建议改用停用
+    // 后端在「已有对局记录」时会拒绝，前端已预判，此处兜底提示
     notifyErr(err.message || '删除失败');
     return false;
   }
@@ -380,13 +391,20 @@ export async function confirmDeleteMatch(match) {
 }
 
 export async function confirmDeleteSeason(season) {
+  // 前端预判：有对局记录的赛季禁止删除（与后端规则一致，避免误弹确认框）
   const matchCount = store.matches.filter((m) => m.season_id === season.id).length;
+  if (matchCount > 0) {
+    notifyErr(
+      `该赛季已有 ${matchCount} 局对局记录，无法删除（删除会导致历史对局与战绩不可逆丢失）。`
+    );
+    return false;
+  }
+
   const ok = await confirmDialog({
     title: `删除赛季「${season.name}」`,
     message:
-      `该赛季下有 ${matchCount} 局对局记录，会一并删除；关联的高光记录会被解绑但保留。\n\n` +
-      '所有相关排行榜数据将不可恢复地丢失。如果只是想封存，建议改为「已归档」。',
-    confirmText: '我确认删除',
+      '该赛季下没有任何对局记录，可以删除。\n\n关联的高光记录会被解绑但保留，操作不可恢复。如果只是想封存，建议改为「已归档」。',
+    confirmText: '删除',
     danger: true,
   });
   if (!ok) return false;
