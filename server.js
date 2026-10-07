@@ -153,6 +153,7 @@ const routes = [
   ['POST', /^\/api\/seasons$/, (ctx) => api.createSeason(ctx.body)],
   ['PUT', /^\/api\/seasons\/(\d+)$/, (ctx) => api.updateSeason(Number(ctx.params[0]), ctx.body)],
   ['POST', /^\/api\/seasons\/(\d+)\/pin$/, (ctx) => api.pinSeason(Number(ctx.params[0]))],
+  ['POST', /^\/api\/seasons\/(\d+)\/photo$/, (ctx) => api.uploadSeasonImage(Number(ctx.params[0]), ctx.body)],
   ['DELETE', /^\/api\/seasons\/(\d+)$/, (ctx) => api.deleteSeason(Number(ctx.params[0]))],
 
   ['GET', /^\/api\/matches$/, () => api.bootstrap().matches],
