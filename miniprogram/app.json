@@ -4,7 +4,8 @@
     "pages/matches/matches",
     "pages/highlights/highlights",
     "pages/leaderboard/leaderboard",
-    "pages/mine/mine"
+    "pages/mine/mine",
+    "pages/player/player"
   ],
   "window": {
     "navigationBarBackgroundColor": "#0f5132",

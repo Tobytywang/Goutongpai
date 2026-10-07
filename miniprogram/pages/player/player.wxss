@@ -1,0 +1,60 @@
+/* 资料页：封面上叠头像（查看入口） */
+.profile-cover {
+  position: relative;
+  height: 280rpx;
+  background: var(--color-primary-light);
+  overflow: hidden;
+}
+.profile-cover-img {
+  width: 100%;
+  height: 100%;
+}
+.profile-cover-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 160rpx;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0));
+}
+.profile-head {
+  position: absolute;
+  left: var(--space-md);
+  bottom: var(--space-md);
+  display: flex;
+  align-items: flex-end;
+}
+.profile-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  border: 4rpx solid #fff;
+  background: var(--color-border);
+  flex: 0 0 auto;
+}
+.profile-avatar-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+}
+.profile-meta {
+  margin-left: var(--space-sm);
+  margin-bottom: 8rpx;
+  color: #fff;
+}
+.profile-name {
+  display: block;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.3);
+}
+.profile-style {
+  display: block;
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
+  text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.3);
+}

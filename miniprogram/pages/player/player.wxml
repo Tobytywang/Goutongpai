@@ -1,0 +1,49 @@
+<view class="page">
+  <block wx:if="{{player}}">
+    <!-- 封面（背景图）+ 头像叠加，作为查看入口 -->
+    <view class="profile-cover">
+      <image wx:if="{{player.photoUrl}}" class="profile-cover-img" src="{{player.photoUrl}}" mode="aspectFill" />
+      <view class="profile-cover-mask"></view>
+      <view class="profile-head">
+        <image wx:if="{{player.avatarUrl}}" class="profile-avatar" src="{{player.avatarUrl}}" mode="aspectFill" />
+        <view wx:else class="profile-avatar profile-avatar-ph">{{player.initial}}</view>
+        <view class="profile-meta">
+          <text class="profile-name">{{player.name}}</text>
+          <text wx:if="{{player.style}}" class="profile-style">{{player.style}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="list-item">
+        <text class="muted">玩家 ID</text>
+        <text class="name">#{{player.id}}</text>
+      </view>
+      <view class="list-item">
+        <text class="muted">签名</text>
+        <text class="name">{{player.style || '—'}}</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="title">资料图片</view>
+      <view class="row-between">
+        <text class="muted">头像</text>
+        <button class="btn-ghost mini" hover-class="btn-hover" catchtap="upload" data-kind="avatar">更换</button>
+      </view>
+      <view class="row-between">
+        <text class="muted">背景图</text>
+        <button class="btn-ghost mini" hover-class="btn-hover" catchtap="upload" data-kind="photo">更换</button>
+      </view>
+      <view class="muted">背景图显示在资料页顶部封面。</view>
+      <view class="row-between row-gap-top">
+        <text class="muted">删除玩家</text>
+        <button class="btn-danger mini" hover-class="btn-hover" catchtap="deletePlayer">删除</button>
+      </view>
+      <view class="muted">删除后头像与背景图一并移除；若已有对局记录则无法删除。</view>
+    </view>
+  </block>
+
+  <view wx:elif="{{loading}}" class="empty">加载中…</view>
+  <view wx:else class="empty">未找到该玩家</view>
+</view>
