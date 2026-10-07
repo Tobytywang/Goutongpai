@@ -951,7 +951,7 @@ export function renderScoring(root) {
     const errors = [];
     const warnings = [];
     if (draft.camps.length < 2) errors.push('至少需要 2 个阵营');
-    if (draft.camps.some((c) => c.players.length === 0)) errors.push('每个阵营至少要有 1 名玩家');
+    if (draft.camps.some((c) => c.players.length < 2)) errors.push('每个阵营至少要有 2 名玩家');
     if (distributed > deckTotal) errors.push(`总录入分数 ${distributed} 超过牌库总分 ${deckTotal}，请核对分数`);
     const seen = new Set();
     for (const c of draft.camps) {
@@ -969,7 +969,7 @@ export function renderScoring(root) {
       entries.length > 0 &&
       errors.length === 0 &&
       draft.camps.length >= 2 &&
-      draft.camps.every((c) => c.players.length > 0);
+      draft.camps.every((c) => c.players.length > 1);
 
     // 校验提示条
     alertBar.innerHTML = '';
@@ -1095,7 +1095,7 @@ export function renderScoring(root) {
 
       if (!payload.season_id) throw new Error('请先选择赛季');
       for (const c of payload.camps) {
-        if (c.players.length === 0) throw new Error(`「${c.name}」还没有玩家，请至少放 1 名玩家`);
+        if (c.players.length < 2) throw new Error(`「${c.name}」玩家不足 2 名，请至少放 2 名玩家`);
       }
 
       // 第二道保险：总录入分数不可超过牌库总分（牌库只有这么些分）
