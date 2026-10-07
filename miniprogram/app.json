@@ -19,11 +19,11 @@
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
     "list": [
-      { "pagePath": "pages/scoring/scoring", "text": "计分" },
-      { "pagePath": "pages/matches/matches", "text": "对局" },
-      { "pagePath": "pages/highlights/highlights", "text": "高光" },
-      { "pagePath": "pages/leaderboard/leaderboard", "text": "排名" },
-      { "pagePath": "pages/mine/mine", "text": "我的" }
+      { "pagePath": "pages/scoring/scoring", "text": "计分", "iconPath": "assets/tabbar/tab-scoring.png", "selectedIconPath": "assets/tabbar/tab-scoring-active.png" },
+      { "pagePath": "pages/matches/matches", "text": "对局", "iconPath": "assets/tabbar/tab-matches.png", "selectedIconPath": "assets/tabbar/tab-matches-active.png" },
+      { "pagePath": "pages/highlights/highlights", "text": "高光", "iconPath": "assets/tabbar/tab-highlights.png", "selectedIconPath": "assets/tabbar/tab-highlights-active.png" },
+      { "pagePath": "pages/leaderboard/leaderboard", "text": "排名", "iconPath": "assets/tabbar/tab-leaderboard.png", "selectedIconPath": "assets/tabbar/tab-leaderboard-active.png" },
+      { "pagePath": "pages/mine/mine", "text": "我的", "iconPath": "assets/tabbar/tab-mine.png", "selectedIconPath": "assets/tabbar/tab-mine-active.png" }
     ]
   },
   "style": "v2",
