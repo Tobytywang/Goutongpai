@@ -1,1 +1,116 @@
 /* 通用样式见 app.wxss */
+
+/* 阵营头部：左侧阵营名，右侧小计 + 删除 */
+.camp-head {
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+.camp-head-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+  margin-left: var(--space-sm);
+}
+.camp-subtotal {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+.camp-subtotal .win {
+  margin-left: 8rpx;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* 阵营卡片：左侧色条标识阵营颜色（与网页端红/蓝/绿/紫保持一致） */
+.camp-card {
+  border-left: 8rpx solid transparent;
+}
+.camp-color-red { --camp-color: #d64545; border-left-color: var(--camp-color); }
+.camp-color-blue { --camp-color: #3b7dd8; border-left-color: var(--camp-color); }
+.camp-color-green { --camp-color: #2f9e63; border-left-color: var(--camp-color); }
+.camp-color-purple { --camp-color: #b165d4; border-left-color: var(--camp-color); }
+
+/* 四个阵营时「+ 阵营」按钮置灰不可点 */
+.card-head .btn-primary.mini[disabled] {
+  background: #cccccc;
+  color: #ffffff;
+  opacity: 1;
+}
+
+.camp-head-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.camp-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  margin-right: 12rpx;
+  background: var(--camp-color);
+  flex-shrink: 0;
+}
+
+.camp-full-tip {
+  text-align: center;
+  padding: 12rpx 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* 减小计分页第一个表单卡片内部留白，同时保持与下方阵营卡片的间距 */
+.sticky-header > .card:first-child {
+  margin-bottom: var(--space-md) !important;
+  padding-bottom: var(--space-sm);
+}
+.sticky-header > .card:first-child .form-row:last-child {
+  margin-bottom: 0;
+}
+/* 阵营卡片上下内边距与表单卡片底部一致 */
+.page .camp-card {
+  margin-top: var(--space-md) !important;
+  padding-top: var(--space-sm);
+  padding-bottom: var(--space-sm);
+}
+
+/* 表单底部规则提示 / 实时校验告警（替代独立的 warns-card，统一小灰字，单行） */
+.form-tip {
+  padding: 8rpx 0 0;
+  font-size: 22rpx;
+  color: var(--color-text-secondary);
+}
+
+/* 未通过校验时禁用提交按钮：不使用 opacity（会导致文字几乎看不见），改用实色灰底+深灰字 */
+.preview-card .btn-primary[disabled] {
+  background: #e5e5e5;
+  color: #666666;
+  opacity: 1;
+}
+
+/* 底部「本局预览」卡片：左侧文字信息，右侧保存按钮 */
+.preview-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.preview-info {
+  flex: 1;
+  min-width: 0;
+}
+.preview-card .btn-primary {
+  flex-shrink: 0;
+  align-self: stretch;
+  height: auto;
+  margin: 0;
+  padding: 0 var(--space-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}

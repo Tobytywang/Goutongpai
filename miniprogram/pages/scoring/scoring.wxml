@@ -1,46 +1,91 @@
 <view class="page">
-  <view class="card">
-    <view class="row-between">
-      <text class="title">计分录入</text>
-      <button class="btn-primary mini" bindtap="addCamp">+ 阵营</button>
+  <view class="sticky-header">
+    <view class="card">
+      <view class="row-between card-head">
+        <text class="title">计分录入</text>
+        <button class="btn-primary mini" hover-class="btn-hover" disabled="{{camps.length >= 4}}" bindtap="addCamp">+ 阵营</button>
+      </view>
+      <view class="form-row">
+        <text class="form-label form-label--justify">赛季</text>
+        <view class="picker-right">
+          <view class="picker-value picker-locked">
+            <text class="picker-text">{{seasons.length ? seasons[seasonIndex].label : '请先在「我的」创建赛季'}}</text>
+            <text class="picker-lock">🔒</text>
+          </view>
+        </view>
+      </view>
+      <view class="form-row">
+        <text class="form-label form-label--justify">日期</text>
+        <picker class="picker-right" mode="date" value="{{playedAt}}" bindchange="onDateChange">
+          <view class="picker-value">
+            <text class="picker-text">{{playedAt}}</text>
+            <text class="picker-arrow">▾</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-row form-row--inline">
+        <view class="form-field">
+          <text class="form-label form-label--inline">牌副数</text>
+          <picker class="picker-right" range="{{deckOptions}}" value="{{deckIndex}}" bindchange="onDeckChange">
+            <view class="picker-value">
+              <text class="picker-text">{{deckOptions[deckIndex]}}</text>
+              <text class="picker-arrow">▾</text>
+            </view>
+          </picker>
+        </view>
+        <view class="form-field">
+          <text class="form-label form-label--inline">第几局</text>
+          <picker class="picker-right" range="{{seqOptions}}" range-key="label" value="{{seqIndex}}" bindchange="onSeqChange">
+            <view class="picker-value">
+              <text class="picker-text">{{seqOptions[seqIndex].label}}</text>
+              <text class="picker-arrow">▾</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+      <view class="form-tip">牌副数最少 4 副 · 本局至少 6 名玩家 · 每个阵营至少 2 名玩家</view>
     </view>
-    <picker wx:if="{{seasons.length}}" range="{{seasons}}" range-key="name" value="{{seasonIndex}}" bindchange="onSeasonChange">
-      <view class="picker">赛季：{{seasons[seasonIndex].name}} ▾</view>
-    </picker>
-    <picker range="{{deckOptions}}" value="{{deckIndex}}" bindchange="onDeckChange">
-      <view class="picker">牌副数：{{deckOptions[deckIndex]}} ▾</view>
-    </picker>
   </view>
 
-  <view wx:for="{{camps}}" wx:key="index" wx:for-index="ci" class="card">
-    <view class="row-between">
-      <input class="camp-name" placeholder="阵营名" value="{{item.name}}" bindinput="onCampName" data-camp="{{ci}}" />
-      <text class="del-text" bindtap="removeCamp" data-index="{{ci}}">删除</text>
+  <view wx:for="{{camps}}" wx:key="uid" wx:for-index="ci" class="card camp-card camp-color-{{item.colorKey}}">
+    <view class="row-between camp-head">
+      <view class="camp-head-left">
+        <view class="camp-dot"></view>
+        <input class="camp-name" placeholder="阵营名" value="{{item.name}}" bindinput="onCampName" data-camp="{{ci}}" />
+      </view>
+      <view class="camp-head-right">
+        <view class="camp-subtotal">
+          <text>小计 {{item.subtotal}} 分</text>
+          <text wx:if="{{result && result.rows[ci].isWinner}}" class="win">🏆 过线</text>
+        </view>
+        <text wx:if="{{camps.length > 2 && ci === camps.length - 1}}" class="del-text" bindtap="removeCamp" data-index="{{ci}}">删除</text>
+      </view>
     </view>
 
-    <view wx:for="{{item.players}}" wx:key="pi" wx:for-item="p" wx:for-index="pi" class="player-row">
-      <picker range="{{players}}" range-key="name" value="{{p.playerIdx}}" bindchange="onPlayerPick" data-camp="{{ci}}" data-pi="{{pi}}">
+    <view wx:for="{{item.players}}" wx:key="uid" wx:for-item="p" wx:for-index="pi" class="player-row">
+      <picker range="{{p.available}}" range-key="name" value="{{p.availIdx}}" bindchange="onPlayerPick" data-camp="{{ci}}" data-pi="{{pi}}">
         <view class="picker sm">{{p.playerName}}</view>
       </picker>
-      <input class="score-input" type="number" placeholder="分" value="{{p.score}}" bindinput="onScore" data-camp="{{ci}}" data-pi="{{pi}}" />
-      <text class="tap" bindtap="onFinished" data-camp="{{ci}}" data-pi="{{pi}}">{{p.finished ? '已出完' : '未出完'}}</text>
-      <text class="tap" bindtap="onMvp" data-camp="{{ci}}" data-pi="{{pi}}">{{p.mvp ? 'MVP' : '—'}}</text>
-      <text class="del" bindtap="removePlayer" data-camp="{{ci}}" data-pi="{{pi}}">✕</text>
+      <input class="score-input" placeholder-class="placeholder-center" type="number" placeholder="得分" value="{{p.score}}" bindinput="onScore" bindblur="onScoreBlur" data-camp="{{ci}}" data-pi="{{pi}}" />
+      <view class="player-actions">
+        <view class="chip {{p.finished ? 'active' : ''}}" bindtap="onFinished" data-camp="{{ci}}" data-pi="{{pi}}">{{p.finished ? '已出完' : '未出完'}}</view>
+        <view class="chip {{p.mvp ? 'active mvp' : ''}}" bindtap="onMvp" data-camp="{{ci}}" data-pi="{{pi}}">MVP</view>
+        <view class="del" bindtap="removePlayer" data-camp="{{ci}}" data-pi="{{pi}}">✕</view>
+      </view>
     </view>
 
-    <button class="btn-add" bindtap="addPlayer" data-camp="{{ci}}">+ 添加玩家</button>
+    <button wx:if="{{item.players.length < 5}}" class="btn-ghost mini add-player" hover-class="btn-hover" bindtap="addPlayer" data-camp="{{ci}}">+ 添加玩家</button>
+    <view wx:else class="camp-full-tip">该阵营已满5人</view>
+  </view>
 
-    <view wx:if="{{result}}" class="camp-result">
-      <text>小计 {{result.rows[ci].totalScore}} 分</text>
-      <text wx:if="{{result.rows[ci].isWinner}}" class="win">🏆 过线</text>
+  <view class="card preview-card">
+    <view class="preview-info">
+      <view class="title">本局预览</view>
+      <view class="muted">牌库总分 {{result.deckTotal}} · 获胜线 {{result.winLine}}</view>
+      <view wx:if="{{result.unresolved && result.claimed > 0}}" class="warn">⚠️ {{result.winners.length ? result.winners.length + ' 个阵营同时过线' : '暂无阵营过线'}}，请核对</view>
     </view>
+    <button class="btn-primary submit-btn" hover-class="btn-hover" loading="{{submitting}}" disabled="{{!canSubmit}}" bindtap="submit">保存对局</button>
   </view>
 
-  <view wx:if="{{result}}" class="card">
-    <view class="title">本局预览</view>
-    <view class="muted">牌库总分 {{result.deckTotal}} · 获胜线 {{result.winLine}}</view>
-    <view wx:if="{{result.unresolved}}" class="warn">⚠️ {{result.winners.length ? result.winners.length + ' 个阵营同时过线' : '暂无阵营过线'}}，请核对</view>
-  </view>
-
-  <button class="btn-primary submit safe-bottom" loading="{{submitting}}" bindtap="submit">保存对局</button>
+  <view class="safe-bottom"></view>
 </view>
