@@ -1,0 +1,151 @@
+/* 排行榜场景样式（基于全局 Token） */
+
+/* 顶部标题行：标题 + 范围说明 */
+.lb-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+/* 顶部筛选卡片：赛季 + 排序依据 同行 */
+.filter-card {
+  margin-bottom: var(--space-md);
+}
+.filter-row {
+  display: flex;
+  gap: var(--space-md);
+}
+/* 复用全局 .form-row / .form-label--justify / .picker-right，仅做横向等分与消除纵向间距 */
+.filter-cell {
+  flex: 1;
+  min-width: 0;
+}
+.filter-cell.form-row {
+  margin-bottom: 0;
+}
+
+/* ============ 领奖台（前 3 名）：与列表项同布局，序号用金银铜 ============ */
+.podium {
+  display: block;
+  margin: 0 var(--space-sm) var(--space-sm);
+}
+.podium-card {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-sm);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+.podium-card:last-child {
+  margin-bottom: 0;
+}
+
+/* ============ 列表项（第 4 名及以后） ============ */
+.rank-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: var(--space-sm) 0;
+}
+.rank-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.rank-main {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+  flex: 1;
+}
+.rank-main .name {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.camp-bar {
+  margin-top: 0;
+  margin-left: auto;
+  width: 120rpx;
+  height: 12rpx;
+  background: var(--color-border);
+  border-radius: 999rpx;
+  overflow: hidden;
+  display: flex;
+  flex-shrink: 0;
+}
+.camp-segment {
+  height: 100%;
+  flex-shrink: 0;
+}
+.rank-no {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  flex: 0 0 auto;
+  background: var(--color-fill);
+  color: var(--color-text-secondary);
+}
+.rank-no-1 { background: var(--color-medal-gold); color: #fff; }
+.rank-no-2 { background: var(--color-medal-silver); color: var(--color-text); }
+.rank-no-3 { background: var(--color-medal-bronze); color: #fff; }
+.rank-meta {
+  margin-top: 10rpx;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+.meta-narrow { flex: 5; }
+.meta-mid { flex: 6; }
+.meta-wide { flex: 8; }
+.meta-val {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.meta-label {
+  margin-top: 4rpx;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+/* 当前排序项对应的数字：放大并强调，呼应前 3 名领奖台得分的视觉权重 */
+.meta-active .meta-val {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* 未出场玩家（尚无战绩）：整项灰显，昵称后加「未出场」小标签 */
+.no-record {
+  opacity: 0.55;
+}
+.no-record-tag {
+  flex: 0 0 auto;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  background: var(--color-fill);
+  border-radius: var(--radius-round);
+  padding: 2rpx 14rpx;
+  white-space: nowrap;
+}
+

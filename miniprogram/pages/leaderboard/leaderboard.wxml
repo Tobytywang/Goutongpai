@@ -1,8 +1,135 @@
 <view class="page">
-  <view class="card title">排行榜（按累计得分）</view>
-  <view wx:for="{{rankings}}" wx:key="id" class="list-item">
-    <text class="name">{{index + 1}}. {{item.name}}</text>
-    <text class="muted">{{item.total}}分 · 胜{{item.wins}} · MVP{{item.mvp}}</text>
+  <view class="sticky-header">
+    <view class="card title">
+      <view class="lb-title-row">
+        <text class="title">排行榜</text>
+        <text class="muted">{{scopeLabel}}</text>
+      </view>
+    </view>
+
+    <view class="card filter-card" wx:if="{{seasons.length}}">
+      <view class="filter-row">
+        <view class="form-row filter-cell">
+          <text class="form-label form-label--justify">赛季</text>
+          <picker class="picker-right" range="{{seasons}}" range-key="label" value="{{seasonIndex}}" bindchange="onSeasonChange">
+            <view class="picker-value">
+              <text class="picker-text">{{seasons[seasonIndex].label}}</text>
+              <text class="picker-arrow">▾</text>
+            </view>
+          </picker>
+        </view>
+        <view class="form-row filter-cell">
+          <text class="form-label form-label--justify">排序</text>
+          <picker class="picker-right" range="{{sortLabels}}" value="{{sortIndex}}" bindchange="onSortChange">
+            <view class="picker-value">
+              <text class="picker-text">{{sortLabels[sortIndex]}}</text>
+              <text class="picker-arrow">▾</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+    </view>
   </view>
-  <view wx:if="{{!rankings.length && !loading}}" class="empty">暂无数据，先去录入对局</view>
+
+  <view wx:if="{{podium.length}}" class="podium">
+    <view wx:for="{{podium}}" wx:key="id" class="podium-card podium-{{index + 1}} {{item.noRecord ? 'no-record' : ''}}">
+      <view class="rank-top">
+        <view class="rank-no rank-no-{{index + 1}}">{{item.rank}}</view>
+        <view class="rank-main">
+          <text class="name">{{item.name}}</text>
+          <text wx:if="{{item.noRecord}}" class="no-record-tag">未出场</text>
+          <view class="camp-bar" wx:if="{{item.campShares.length}}">
+            <view wx:for="{{item.campShares}}" wx:key="camp" class="camp-segment" style="width: {{item.pct}}%; background-color: {{item.color}};"></view>
+          </view>
+        </view>
+      </view>
+      <view class="muted rank-meta">
+        <view class="meta-item meta-narrow {{activeKey === 'games' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.games}}</text>
+          <text class="meta-label">出场</text>
+        </view>
+        <view class="meta-item meta-narrow {{activeKey === 'wins' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.wins}}</text>
+          <text class="meta-label">胜场</text>
+        </view>
+        <view class="meta-item meta-mid {{activeKey === 'winRate' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.winRateText}}</text>
+          <text class="meta-label">胜率</text>
+        </view>
+        <view class="meta-item meta-mid {{activeKey === 'finishRate' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.finishRateText}}</text>
+          <text class="meta-label">出完率</text>
+        </view>
+        <view class="meta-item meta-wide {{activeKey === 'banked' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.banked}}</text>
+          <text class="meta-label">总得分</text>
+        </view>
+        <view class="meta-item meta-wide {{activeKey === 'avg' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.avgText}}</text>
+          <text class="meta-label">场均得分</text>
+        </view>
+        <view class="meta-item meta-wide {{activeKey === 'best' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.bestText}}</text>
+          <text class="meta-label">最高得分</text>
+        </view>
+        <view class="meta-item meta-narrow {{activeKey === 'mvp' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.mvp}}</text>
+          <text class="meta-label">MVP</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{rankings.length}}">
+    <view wx:for="{{rankings}}" wx:key="id" class="list-item rank-item {{item.noRecord ? 'no-record' : ''}}">
+      <view class="rank-top">
+        <view class="rank-no">{{item.rank}}</view>
+        <view class="rank-main">
+          <text class="name">{{item.name}}</text>
+          <text wx:if="{{item.noRecord}}" class="no-record-tag">未出场</text>
+          <view class="camp-bar" wx:if="{{item.campShares.length}}">
+            <view wx:for="{{item.campShares}}" wx:key="camp" class="camp-segment" style="width: {{item.pct}}%; background-color: {{item.color}};"></view>
+          </view>
+        </view>
+      </view>
+      <view class="muted rank-meta">
+        <view class="meta-item meta-narrow {{activeKey === 'games' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.games}}</text>
+          <text class="meta-label">出场</text>
+        </view>
+        <view class="meta-item meta-narrow {{activeKey === 'wins' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.wins}}</text>
+          <text class="meta-label">胜场</text>
+        </view>
+        <view class="meta-item meta-mid {{activeKey === 'winRate' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.winRateText}}</text>
+          <text class="meta-label">胜率</text>
+        </view>
+        <view class="meta-item meta-mid {{activeKey === 'finishRate' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.finishRateText}}</text>
+          <text class="meta-label">出完率</text>
+        </view>
+        <view class="meta-item meta-wide {{activeKey === 'banked' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.banked}}</text>
+          <text class="meta-label">总得分</text>
+        </view>
+        <view class="meta-item meta-wide {{activeKey === 'avg' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.avgText}}</text>
+          <text class="meta-label">场均得分</text>
+        </view>
+        <view class="meta-item meta-wide {{activeKey === 'best' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.bestText}}</text>
+          <text class="meta-label">最高得分</text>
+        </view>
+        <view class="meta-item meta-narrow {{activeKey === 'mvp' ? 'meta-active' : ''}}">
+          <text class="meta-val">{{item.mvp}}</text>
+          <text class="meta-label">MVP</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{!podium.length && !rankings.length && !loading}}" class="empty">暂无数据，先去录入对局</view>
+
+  <view class="safe-bottom"></view>
 </view>
