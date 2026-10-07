@@ -1,0 +1,151 @@
+/* 对局页：阵营块（欧洲传统装饰旗风格：复杂纹样背景图铺满） */
+.camp-block {
+  position: relative;
+  padding: var(--space-xs) var(--space-sm);
+  border-top: 1rpx solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.camp-block:first-child {
+  border-top: none;
+}
+.camp-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.55;
+  z-index: 0;
+  pointer-events: none;
+}
+.camp-block .camp-line {
+  padding: var(--space-xs) 0;
+  border-top: none;
+  color: #fff;
+  text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.45);
+  border-radius: var(--radius-sm);
+  position: relative;
+  z-index: 1;
+}
+.camp-line-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.camp-color-mark {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 4rpx;
+  flex-shrink: 0;
+}
+/* 胜利奖杯：在对局卡片中放大显示 */
+.camp-line .win {
+  font-size: 40rpx;
+}
+
+/* 对局页：阵营内玩家得分（胶囊样式：左半边队伍色背景+白字名字，右半边白色背景+分数） */
+.camp-players {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding-top: var(--space-xs);
+}
+/* 仅给「队伍名：分数」文字+前方色块加局部衬底（圆角药丸），不影响整行纹样可视性 */
+.camp-name-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 6rpx 18rpx;
+  background: #ffffff;
+  border-radius: 999rpx;
+  color: #1a1a1a;
+  font-size: 28rpx;
+  font-weight: 600;
+  text-shadow: none;
+}
+.camp-name-text .camp-color-mark {
+  width: 18rpx;
+  height: 18rpx;
+}
+.player-score {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: var(--radius-round);
+  overflow: hidden;
+  border: 2rpx solid #000;
+  font-size: var(--font-size-sm);
+}
+.player-name-half {
+  display: flex;
+  align-items: center;
+  padding: 6rpx 16rpx 10rpx;
+  max-width: 240rpx;
+  color: #fff;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.player-score-half {
+  display: flex;
+  align-items: center;
+  padding: 6rpx 16rpx 10rpx;
+  background: #fff;
+  color: var(--color-text);
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* 对局页：卡片头部（局号 + 日期 + 当日第N局 + 副数，左信息 + 右上删除按钮） */
+.match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+.match-header-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  min-width: 0;
+  overflow: hidden;
+}
+/* 提高选择器优先级并强制按钮宽度自适应内容，避免微信 button 默认占满整行 */
+.match-header .btn-danger.mini.match-del {
+  flex-shrink: 0;
+  margin: 0;
+  height: 48rpx;
+  line-height: 48rpx;
+  padding: 0 16rpx;
+  font-size: 22rpx;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.match-id-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rpx 10rpx;
+  background: var(--color-fill);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+.sep {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+/* 对局页：列表卡片底部留白更小，减少白色空白 */
+.page > .card:not(.title) {
+  padding-bottom: var(--space-sm);
+}

@@ -1,14 +1,48 @@
 <view class="page">
-  <view class="card title">对局（{{matches.length}}）</view>
-  <view wx:for="{{matches}}" wx:key="id" class="card">
-    <view class="row-between">
-      <text class="name">{{item.season_name}} · {{item.played_at}}</text>
-      <text class="muted">{{item.deck_count}}副</text>
-    </view>
-    <view wx:for="{{item.camps}}" wx:for-item="c" wx:key="id" class="camp-line">
-      <text>{{c.name}}：{{c.total_score}} 分</text>
-      <text wx:if="{{c.is_winner}}" class="win">🏆</text>
+  <view class="sticky-header">
+    <view class="card title">对局（{{matches.length}}）</view>
+    <view class="form-row head-filters" wx:if="{{seasons.length}}">
+      <text class="form-label form-label--justify">赛季</text>
+      <picker class="picker-right" range="{{seasons}}" range-key="label" value="{{seasonIndex}}" bindchange="onSeasonChange">
+        <view class="picker-value">
+          <text class="picker-text">{{seasons[seasonIndex].label}}</text>
+          <text class="picker-arrow">▾</text>
+        </view>
+      </picker>
     </view>
   </view>
-  <view wx:if="{{!matches.length && !loading}}" class="empty">暂无对局，去「计分」录入一局</view>
+  <view wx:for="{{matches}}" wx:key="id" class="card">
+    <view class="match-header">
+      <view class="match-header-left">
+        <text class="match-id-tag">#{{item.id}}</text>
+        <text class="name">{{item.played_at}}</text>
+        <text class="sep">·</text>
+        <text class="name">当日第{{item.daily_index}}局</text>
+        <text class="sep">·</text>
+        <text class="name">{{item.deck_count}}副</text>
+      </view>
+      <button class="btn-danger mini match-del" hover-class="btn-hover" catchtap="deleteMatch" data-id="{{item.id}}">删除本局</button>
+    </view>
+    <view wx:for="{{item.camps}}" wx:for-item="c" wx:key="id" class="camp-block {{c.is_winner ? 'winner' : 'loser'}}">
+      <image wx:if="{{c.is_winner}}" class="camp-bg" src="/assets/bg-win.png" mode="aspectFill"/>
+      <image wx:else class="camp-bg" src="/assets/bg-lose.png" mode="aspectFill"/>
+      <view class="camp-line">
+        <view class="camp-line-left">
+          <view class="camp-name-text">
+            <view class="camp-color-mark" style="background-color: {{c.color}};"></view>
+            <text>{{c.name}}：{{c.total_score}} 分</text>
+          </view>
+        </view>
+        <text wx:if="{{c.is_winner}}" class="win">🏆</text>
+      </view>
+      <view wx:if="{{c.players.length}}" class="camp-players">
+        <view wx:for="{{c.players}}" wx:for-item="p" wx:key="player_id" class="player-score">
+          <view class="player-name-half" style="background-color: {{c.color}};">{{p.name}}</view>
+          <view class="player-score-half">{{p.score}}分</view>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view wx:if="{{!matches.length && !loading}}" class="empty">暂无对局记录，去「计分」录入一局</view>
+  <view class="safe-bottom"></view>
 </view>
