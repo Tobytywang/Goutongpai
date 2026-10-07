@@ -124,6 +124,13 @@ const num = (v) => {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
 };
 
+/** 得分对齐到最近的 5 的倍数（最小为 0），与小程序计分页规则一致 */
+const roundTo5 = (v) => {
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.round(n / 5) * 5;
+};
+
 /** 对局只记日期（YYYY-MM-DD），不记具体时刻 */
 const fromDateInput = (s) => (/^\d{4}-\d{2}-\d{2}$/.test(s || '') ? s : '');
 
@@ -428,6 +435,14 @@ export function renderScoring(root) {
       'aria-label': `${player.name} 的分数`,
       oninput: (e) => {
         entry.score = e.target.value;
+        refresh();
+        persist();
+      },
+      onblur: (e) => {
+        // 失焦时对齐到 5 的倍数
+        const rounded = roundTo5(e.target.value);
+        entry.score = String(rounded);
+        e.target.value = rounded;
         refresh();
         persist();
       },
@@ -1071,7 +1086,7 @@ export function renderScoring(root) {
           color: c.color,
           players: c.players.map((p) => ({
             player_id: p.player_id,
-            score: num(p.score),
+            score: roundTo5(num(p.score)),
             finished: !!p.finished,
             is_mvp: !!p.is_mvp,
           })),
