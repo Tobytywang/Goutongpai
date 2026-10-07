@@ -67,7 +67,16 @@ export function renderSeasons(root) {
     return;
   }
 
-  for (const season of store.seasons) {
+  // web 端只读、无法写 pinned，故在渲染层把前端选中的「当前赛季」（store.currentSeasonId）
+  // 前移，保证它始终显示在最上面；与后端 pinned 排序互补且不冲突（若已 pin 则 curIdx 为 0 不移动）
+  const ordered = store.seasons.slice();
+  const curIdx = ordered.findIndex((s) => s.id === store.currentSeasonId);
+  if (curIdx > 0) {
+    const [cur] = ordered.splice(curIdx, 1);
+    ordered.unshift(cur);
+  }
+
+  for (const season of ordered) {
     const matches = store.matches.filter((m) => m.season_id === season.id);
     const players = new Set();
     for (const m of matches) {
