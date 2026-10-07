@@ -1,6 +1,6 @@
-// 图片选择 + 压缩 + base64 编码，返回可直接传给后端 /api/players/:id/avatar 的 data URL
-// 复刻 Web 端 canvas 压缩思路：先 compressImage 压到 <=400px / 质量 70，再读成 base64
-const { BASE } = require('./request');
+// 图片选择 + 压缩 + base64 编码，返回可直接传给后端 /api/players/:id/avatar|photo 的 data URL
+// 复刻 Web 端 canvas 压缩思路：先 compressImage 压到 <=maxSide / 质量 quality，再读成 base64
+const { BASE, post } = require('./request');
 
 /**
  * 选一张图，压缩后转成 data URL。
@@ -48,4 +48,35 @@ function chooseImageAsDataUrl(opts = {}) {
   });
 }
 
-module.exports = { chooseImageAsDataUrl, BASE };
+/**
+ * 选图 → 压缩 → 上传到玩家头像或背景图。
+ * 复用服务端 /api/players/:id/:kind（kind = 'avatar' | 'photo'），与 Web 端互通。
+ * @param {number|string} id 玩家 id
+ * @param {'avatar'|'photo'} kind 头像 / 背景
+ * @param {Object} opts { maxSide, quality }
+ * @returns {Promise<string>} 上传后的 data URL
+ */
+async function uploadPlayerImage(id, kind, opts = {}) {
+  const maxSide = opts.maxSide || (kind === 'photo' ? 800 : 400);
+  const quality = opts.quality || 70;
+  const dataUrl = await chooseImageAsDataUrl({ maxSide, quality });
+  await post('/api/players/' + id + '/' + kind, { dataUrl });
+  return dataUrl;
+}
+
+/**
+ * 选图 → 压缩 → 上传到赛季背景图。
+ * 复用服务端 /api/seasons/:id/photo（与玩家背景图同一套落盘 + 旧图清理逻辑）。
+ * @param {number|string} id 赛季 id
+ * @param {Object} opts { maxSide=800, quality=75 }
+ * @returns {Promise<string>} 上传后的 data URL
+ */
+async function uploadSeasonImage(id, opts = {}) {
+  const maxSide = opts.maxSide || 800;
+  const quality = opts.quality || 75;
+  const dataUrl = await chooseImageAsDataUrl({ maxSide, quality });
+  await post('/api/seasons/' + id + '/photo', { dataUrl });
+  return dataUrl;
+}
+
+module.exports = { chooseImageAsDataUrl, uploadPlayerImage, uploadSeasonImage, BASE };
