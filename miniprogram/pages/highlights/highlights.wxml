@@ -1,9 +1,21 @@
 <view class="page">
-  <view class="card title">高光时刻（{{highlights.length}}）</view>
+  <view class="sticky-header">
+    <view class="card title">高光时刻（{{highlights.length}}）</view>
+    <view class="form-row head-filters" wx:if="{{seasons.length}}">
+      <text class="form-label form-label--justify">赛季</text>
+      <picker class="picker-right" range="{{seasons}}" range-key="label" value="{{seasonIndex}}" bindchange="onSeasonChange">
+        <view class="picker-value">
+          <text class="picker-text">{{seasons[seasonIndex].label}}</text>
+          <text class="picker-arrow">▾</text>
+        </view>
+      </picker>
+    </view>
+  </view>
   <view wx:for="{{highlights}}" wx:key="id" class="card">
     <view class="name">{{item.title}}</view>
     <view wx:if="{{item.content}}" class="muted">{{item.content}}</view>
     <view class="muted">{{item.kind}} · {{item.happened_on}}</view>
   </view>
-  <view wx:if="{{!highlights.length && !loading}}" class="empty">暂无高光</view>
+  <view wx:if="{{!highlights.length && !loading}}" class="empty">暂无高光记录</view>
+  <view class="safe-bottom"></view>
 </view>
