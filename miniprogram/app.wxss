@@ -1,17 +1,37 @@
-/* 全局变量与基础样式（主题色沿用 Web 端 #0f5132） */
+/* ============ 设计 Token（单一事实来源，详见 UI设计规范.md） ============ */
 page {
   --color-primary: #0f5132;
   --color-primary-light: #e7f3ec;
   --color-text: #323233;
   --color-text-secondary: #969799;
+  --color-text-disabled: #c8c9cc;
   --color-bg: #f5f5f5;
+  --color-card: #ffffff;
+  --color-fill: #f5f5f5;
+  --color-border: #f0f0f0;
   --color-danger: #ee0a24;
   --color-win: #07c160;
+  --color-medal-gold: #F0B429;
+  --color-medal-silver: #C8CDD4;
+  --color-medal-bronze: #D98E32;
+
+  --font-size-xs: 20rpx;
   --font-size-sm: 24rpx;
   --font-size-base: 28rpx;
+  --font-size-md: 30rpx;
   --font-size-lg: 34rpx;
-  --spacing: 24rpx;
-  --radius: 16rpx;
+  --font-size-xl: 40rpx;
+
+  --space-xs: 8rpx;
+  --space-sm: 16rpx;
+  --space-md: 24rpx;
+  --space-lg: 32rpx;
+  --space-xl: 48rpx;
+
+  --radius-sm: 8rpx;
+  --radius-md: 12rpx;
+  --radius-lg: 16rpx;
+  --radius-round: 999rpx;
 }
 
 page {
@@ -22,49 +42,151 @@ page {
   box-sizing: border-box;
 }
 
-view, text, image, button {
+view, text, image, button, input, textarea, picker {
   box-sizing: border-box;
 }
 
-/* 通用卡片 */
-.card {
-  background: #fff;
-  border-radius: var(--radius);
-  padding: var(--spacing);
-  margin: var(--spacing);
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+/* ============ 按钮：清除微信默认边框/内距/外边距/min-width，统一高度 ============ */
+button {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+button::after {
+  border: none;
 }
 
-/* 主按钮 */
+/* 主按钮（默认中号） */
 .btn-primary {
+  height: 72rpx;
+  padding: 0 32rpx;
   background: var(--color-primary);
   color: #fff;
-  border-radius: var(--radius);
   font-size: var(--font-size-base);
+  font-weight: 500;
+  line-height: 72rpx;
+  border-radius: var(--radius-md);
+  text-align: center;
 }
-
 .btn-primary[disabled] {
   background: #b9c9c0;
   color: #fff;
 }
 
-/* 文本辅助 */
+/* 次级：灰底 + 主色字（如"头像"） */
+.btn-ghost {
+  height: 56rpx;
+  padding: 0 24rpx;
+  background: var(--color-fill);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  line-height: 56rpx;
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+/* 添加型：主色浅底 + 主色字（如"+添加玩家"） */
+.btn-add {
+  height: 56rpx;
+  padding: 0 24rpx;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  line-height: 56rpx;
+  border-radius: var(--radius-md);
+  text-align: center;
+  margin-top: var(--space-sm);
+}
+
+/* 危险操作（删除）：红底白字，仅用于删除类操作 */
+.btn-danger {
+  height: 72rpx;
+  padding: 0 32rpx;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  line-height: 72rpx;
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+/* 小尺寸修饰：覆盖为中号之外的紧凑按钮（含删除按钮，避免微信 button 默认 min-width 导致过宽） */
+.btn-primary.mini,
+.btn-ghost.mini,
+.btn-add.mini,
+.btn-danger.mini,
+.mini {
+  height: 56rpx;
+  padding: 0 24rpx;
+  font-size: var(--font-size-sm);
+  line-height: 56rpx;
+  min-width: 0 !important;
+}
+
+/* 禁用态（如赛季已有关联对局时删除按钮置灰不可点） */
+.btn-danger.mini.btn-disabled {
+  background: var(--color-fill);
+  color: var(--color-text-disabled);
+}
+
+/* 阵营卡内「+ 添加玩家」需要的上间距 */
+.add-player {
+  margin-top: var(--space-sm);
+}
+
+/* 整行提交按钮 */
+.submit {
+  height: 88rpx;
+  margin: var(--space-md);
+  padding: 0;
+  font-size: var(--font-size-md);
+  line-height: 88rpx;
+  border-radius: var(--radius-lg);
+}
+
+/* 按下反馈（wxml 可加 hover-class="btn-hover"） */
+.btn-hover {
+  opacity: 0.85;
+}
+
+/* ============ 文字排版 ============ */
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+.name {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text);
+}
 .muted {
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
 }
-
-.title {
-  font-size: var(--font-size-lg);
+.tag {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: var(--font-size-xs);
+  color: var(--color-win);
+  background: var(--color-primary-light);
+  padding: 4rpx 12rpx;
+  border-radius: var(--radius-sm);
+}
+.win {
+  color: var(--color-win);
   font-weight: 600;
+  font-size: var(--font-size-base);
 }
-
-/* 安全区适配 */
-.safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+.warn {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-xs);
 }
-
-/* 空状态 */
 .empty {
   text-align: center;
   color: var(--color-text-secondary);
@@ -72,30 +194,773 @@ view, text, image, button {
   font-size: var(--font-size-sm);
 }
 
-/* 通用布局类（所有页面可用） */
-.row-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx; }
-.mini { font-size: 24rpx; padding: 6rpx 20rpx; margin: 0; line-height: 1.6; }
-.form { margin-top: 16rpx; }
-.input { background: #f5f5f5; border-radius: 12rpx; padding: 16rpx; margin-bottom: 16rpx; font-size: 28rpx; }
-.picker { background: #f5f5f5; border-radius: 12rpx; padding: 16rpx; margin-bottom: 12rpx; font-size: 28rpx; }
-.picker.sm { margin-bottom: 0; padding: 12rpx; flex: 1; }
-.list-item { display: flex; justify-content: space-between; align-items: center; padding: 18rpx 0; border-top: 1rpx solid #f0f0f0; }
-.avatar { width: 64rpx; height: 64rpx; border-radius: 50%; background: #f0f0f0; flex: 0 0 auto; }
-.player-main { flex: 1; min-width: 0; margin: 0 16rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.btn-ghost { background: #f5f5f5; color: var(--color-primary); border-radius: 12rpx; font-size: 24rpx; padding: 6rpx 18rpx; margin: 0; line-height: 1.6; }
-.privacy-row { cursor: pointer; }
-.arrow { color: var(--color-text-secondary); font-size: 32rpx; }
-.name { font-weight: 500; }
-.tag { font-size: 22rpx; color: #07c160; background: #e7f3ec; padding: 4rpx 12rpx; border-radius: 8rpx; }
-.camp-name { font-weight: 600; font-size: 30rpx; flex: 1; }
-.del-text { color: #ee0a24; font-size: 24rpx; margin-left: 16rpx; }
-.player-row { display: flex; align-items: center; gap: 12rpx; padding: 14rpx 0; border-top: 1rpx solid #f0f0f0; }
-.score-input { width: 110rpx; background: #f5f5f5; border-radius: 10rpx; padding: 12rpx; text-align: center; }
-.tap { font-size: 24rpx; color: #0f5132; }
-.del { color: #ee0a24; font-size: 28rpx; padding: 0 8rpx; }
-.btn-add { font-size: 24rpx; color: #0f5132; background: #e7f3ec; border-radius: 10rpx; margin-top: 12rpx; padding: 10rpx; }
-.camp-result { margin-top: 12rpx; font-size: 26rpx; display: flex; gap: 16rpx; align-items: center; }
-.win { color: #07c160; font-weight: 600; }
-.warn { color: #ee0a24; font-size: 24rpx; margin-top: 8rpx; }
-.submit { margin: 24rpx; }
-.camp-line { display: flex; justify-content: space-between; padding: 10rpx 0; border-top: 1rpx solid #f5f0f0; font-size: 26rpx; }
+/* 赛季卡片（我的页→赛季）：每张独立卡片，信息分区展示 */
+/* 赛季卡片：整卡去内边距，头部背景图全幅铺满（与玩家卡一致） */
+.card.season-card {
+  padding: 0;
+  overflow: hidden;
+}
+/* 头部 banner：背景图 / 默认 felt 绿底点阵；名称与说明反白 */
+.season-card__header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  height: 220rpx;
+  padding: var(--space-md);
+  overflow: hidden;
+  background: #0f5132;
+}
+.season-card__header-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+.season-card__header-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(135deg, #0f5132, #1f7d4d);
+}
+.season-card__header-pattern::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: .16;
+  background-image:
+    radial-gradient(circle at 18% 30%, #fff 2rpx, transparent 2.5rpx),
+    radial-gradient(circle at 72% 68%, #fff 1.8rpx, transparent 2rpx);
+  background-size: 36rpx 36rpx, 46rpx 46rpx;
+}
+/* 有背景图时叠加暗色蒙层，保证文字可读 */
+.season-card__header.has-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(0,0,0,.26), rgba(0,0,0,.42));
+}
+.season-card__header-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+.season-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.season-card__head .name {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: #fff;
+}
+/* 头部内文字反白（适配 felt 绿底 + 背景图蒙层） */
+.season-card__header .season-card__note {
+  margin-top: 16rpx;
+  font-size: var(--font-size-sm);
+  color: rgba(255,255,255,.9);
+  line-height: 1.5;
+  word-break: break-all;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-height: 3em;
+}
+.season-card__note--placeholder {
+  color: rgba(255,255,255,.5);
+  font-style: italic;
+}
+.season-card__info {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0;
+  padding: var(--space-sm) var(--space-md);
+}
+/* 表单行内的日期选择器触发器占满右侧，与 input 对齐 */
+.form-row .picker-value {
+  flex: 1;
+  min-width: 0;
+}
+/* 日期选择器占位文案（空值）置灰 */
+.picker-placeholder {
+  color: var(--color-text-secondary);
+}
+/* 赛季卡片底部操作栏：编辑 / 背景 / 置顶 / 删除，水平排列 */
+.season-card__foot {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  padding: 16rpx var(--space-md) 24rpx;
+  border-top: 1rpx solid var(--color-border);
+}
+.season-card__foot button {
+  min-width: 0;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 玩家卡片：参考赛季卡片 + Web 玩家卡（封面背景图 + 头像 + 成绩） */
+.card.player-card {
+  padding: 0;
+  overflow: hidden;
+  margin: var(--space-md) var(--space-sm);
+}
+/* 头部：背景图作为头像+编号+签名的背景；无背景时复用 Web 端 felt 绿底点阵 */
+.player-card__header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  height: 220rpx;
+  padding: var(--space-md);
+  overflow: hidden;
+  background: #0f5132;
+}
+.player-card__header-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+.player-card__header-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(135deg, #0f5132, #1f7d4d);
+}
+.player-card__header-pattern::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: .16;
+  background-image:
+    radial-gradient(circle at 18% 30%, #fff 2rpx, transparent 2.5rpx),
+    radial-gradient(circle at 72% 68%, #fff 1.8rpx, transparent 2rpx);
+  background-size: 36rpx 36rpx, 46rpx 46rpx;
+}
+/* 有背景图时叠加暗色蒙层，保证文字可读 */
+.player-card__header.has-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(0,0,0,.26), rgba(0,0,0,.42));
+}
+.player-card__header-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+.player-card__body {
+  padding: var(--space-sm) var(--space-md);
+}
+/* 玩家卡复用 .season-card__info，但玩家卡 body 已有内边距，info 区内不再重复留白 */
+.player-card__body .season-card__info {
+  padding: 0;
+}
+.player-card__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.player-card__avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  border: 4rpx solid #fff;
+  background: var(--color-border);
+  flex: 0 0 auto;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,.18);
+}
+.player-card__avatar-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--color-primary);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+.player-card__heading {
+  flex: 1;
+  min-width: 0;
+}
+/* MVP 数量徽章（头部右上角，仅当 >0 显示） */
+.player-card__mvp {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 999rpx;
+  background: rgba(0, 0, 0, .42);
+  color: #fff;
+  font-size: 38rpx;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+/* 赛季卡「当前」标志：位置与视觉规格参考玩家卡 MVP 奖杯 */
+.season-card__current {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  z-index: 3;
+  padding: 12rpx 24rpx;
+  border-radius: 999rpx;
+  background: rgba(0, 0, 0, .42);
+  color: #fff;
+  font-size: 38rpx;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+/* 头部文字默认反白（适配 felt 绿底 + 背景图蒙层） */
+.player-card__header .player-card__name {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: #fff;
+}
+.player-card__header .player-card__sub {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+  margin-top: 6rpx;
+  font-size: var(--font-size-xs);
+  color: rgba(255,255,255,.85);
+}
+.player-card__header .tag-soft {
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  background: rgba(255,255,255,.22);
+  color: #fff;
+  font-size: var(--font-size-xs);
+}
+.player-card__header .player-card__bio {
+  margin-top: 16rpx;
+  font-size: var(--font-size-sm);
+  color: rgba(255,255,255,.92);
+  line-height: 1.5;
+  word-break: break-all;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-height: 3em;
+}
+.player-card__bio--placeholder {
+  color: rgba(255,255,255,.5);
+  font-style: italic;
+}
+.player-card__foot {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+  border-top: 1rpx solid var(--color-border);
+}
+.player-card__foot button {
+  min-width: 0;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* 赛季/玩家卡片内联编辑区：顶部分割线，与展示内容区分 */
+.season-edit,
+.player-edit {
+  margin-top: 24rpx;
+  padding: 24rpx var(--space-md) var(--space-md);
+  border-top: 1rpx solid var(--color-border);
+}
+/* 编辑表单底部取消/保存按钮统一靠右并保持间距，避免贴在一起 */
+.season-edit .row-between,
+.player-edit .row-between {
+  justify-content: flex-end;
+  gap: var(--space-md);
+}
+.info-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  min-width: 80rpx;
+}
+.info-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+.info-value {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+.badge {
+  display: inline-block;
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: var(--font-size-xs);
+  line-height: 1.6;
+}
+.badge-active { background: rgba(47,158,99,.14); color: #2f9e63; }
+.badge-archived { background: rgba(150,150,150,.16); color: #969799; }
+
+/* 页面根容器 */
+.page {
+  /* 不要给 .page 设 min-height:100vh / 100%：微信带 tabBar 的页面里，page 根容器
+     即使写 100% 也仍按整屏高度算（tabBar 覆盖在 webview 之上），会多出约一截被
+     tabBar 盖住的高度 → 内容没填满却出现 phantom 滚动条。
+     去掉强制高度后，.page 高度 = 内容高度，不会超出台底；下方空白由 page 背景同色铺满，
+     视觉上仍是整屏铺满，但不再有那条多余滚动条。 */
+  background: var(--color-bg);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  /* 防横向溢出，但不用 hidden（hidden 会让 overflow-y 被计算为 auto，
+     使 .page 成为滚动容器，导致 position:sticky 失效）。clip 不创建滚动容器 */
+  overflow-x: clip;
+}
+/* 底部安全区：本项目的页面均为 tabBar 页，底部由 tabBar 覆盖，无需再补
+   env(safe-area-inset-bottom)，否则内容顶满时会把页面总高度撑过内容区、冒出滚动条。
+   此处只负责取消底部外边距，避免与 .page / 按钮叠加撑高页面。 */
+.safe-bottom {
+  /* 列表页底部占位：提供与卡片间距相同的呼吸感（24rpx）。
+     负 margin-top 与最后一张 .card 的 margin-bottom 重叠抵消，
+     避免两者叠加导致留白过大 */
+  padding-bottom: var(--space-md);
+  margin-top: calc(-1 * var(--space-md));
+  margin-bottom: 0 !important;
+}
+
+/* 页面头部吸顶容器：标题 + 筛选器，滚动时固定在顶部。
+   用 padding 代替首个子元素的 margin-top，避免吸顶时顶部留白突然变小 */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-bg);
+  padding-top: var(--space-md);
+}
+.sticky-header > .card:first-child,
+.sticky-header .seg {
+  margin-top: 0;
+}
+
+/* 对局卡片底部：局号 + 删除按钮 */
+.match-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1rpx solid var(--color-border);
+}
+/* 行内上间距（如资料卡内的删除操作区） */
+.row-gap-top {
+  margin-top: var(--space-md);
+}
+
+/* ============ 布局与卡片 ============ */
+.row-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+/* 卡片头部标题行（如「我的」页赛季/玩家头部卡）：去掉 row-between 默认下外边距，让内容在卡片内垂直居中；按钮强制靠右 */
+.card-head {
+  margin-bottom: 0;
+}
+.card-head .title {
+  flex: 1;
+  line-height: 56rpx;
+}
+.card-head button {
+  width: auto;
+  display: block;
+  flex: 0 0 auto;
+}
+/* 头部行（如计分页「计分录入 +阵营」）下方紧贴表单行时，补一个上外边距 */
+.card-head + .form-row {
+  margin-top: var(--space-sm);
+}
+.card {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  /* 卡片上下内边距统一为 16rpx（var(--space-sm)），左右保持 24rpx */
+  padding: var(--space-sm) var(--space-md);
+  margin: var(--space-md) var(--space-sm);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+/* ============ 表单 ============ */
+.form { margin-top: var(--space-sm); }
+.input,
+.picker {
+  background: var(--color-fill);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-sm);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+.input {
+  height: 80rpx;
+  line-height: 80rpx;
+  padding: 0 var(--space-md);
+}
+/* 只读输入框：用于展示不可修改的系统字段（如玩家 ID） */
+.input--readonly {
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+}
+.picker.sm {
+  margin-bottom: 0;
+  padding: var(--space-sm);
+  flex: 1;
+}
+
+/* 表单行：标签在左，控件在右（解决选择器过左、右侧空荡的问题） */
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+/* 页面级筛选行：与 .card 内容的左右边距对齐（卡片 margin + padding = 16+24） */
+.head-filters {
+  margin: 0 var(--space-sm) var(--space-sm);
+  padding: 0 var(--space-md);
+}
+.form-label {
+  flex-shrink: 0;
+  min-width: 80rpx;
+  margin-right: var(--space-md);
+  text-align: left;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+/* 两字标签两端对齐，宽度与三字标签统一为 96rpx，使所有标签右边缘对齐 */
+.form-label--justify {
+  display: inline-block;
+  width: 96rpx;
+  text-align: justify;
+  text-align-last: justify;
+  white-space: nowrap;
+}
+/* 计分页表单内选择器文字靠右，贴近右侧箭头 */
+.picker-right .picker-text {
+  text-align: right;
+}
+.picker-right {
+  flex: 1;
+  min-width: 0;
+}
+.picker-value {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-fill);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+.picker-text {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  margin-right: var(--space-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.picker-arrow {
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+/* 计分页赛季固定为当前赛季：只读、不可切换，加锁图标提示 */
+.picker-value.picker-locked {
+  background: var(--color-fill);
+  cursor: default;
+}
+.picker-lock {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  margin-left: var(--space-sm);
+  opacity: 0.6;
+}
+/* form-row 内的 input 作为右侧控件，占满剩余宽度并去掉默认下间距；文字左对齐与 picker 风格一致 */
+.form-row .input {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+  text-align: left;
+}
+/* 保险：确保 input placeholder 也左对齐 */
+.placeholder-left {
+  text-align: left;
+}
+
+/* 表单行：两列并排（开始/结束日期） */
+.form-row--inline {
+  justify-content: flex-start;
+  gap: var(--space-md);
+}
+.form-row--inline .form-field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+.form-row--inline .form-label--inline {
+  flex-shrink: 0;
+  width: 96rpx;
+  margin-right: var(--space-md);
+  /* 与全局标签保持一致：两端对齐且右边缘对齐 */
+  display: inline-block;
+  text-align: justify;
+  text-align-last: justify;
+  white-space: nowrap;
+}
+.form-row--inline .form-field picker {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+/* 表单行：顶部对齐的多行文本域 */
+.form-row--top {
+  align-items: flex-start;
+}
+.form-label--top {
+  align-self: flex-start;
+  margin-top: 24rpx;
+  /* 与 form-label--justify 统一：两字标签两端对齐，宽度与三字标签一致 */
+  display: inline-block;
+  width: 96rpx;
+  text-align: justify;
+  text-align-last: justify;
+  white-space: nowrap;
+}
+.textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: 140rpx;
+  max-height: 320rpx;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-fill);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  line-height: 1.6;
+  text-align: left;
+  box-sizing: border-box;
+}
+/* 小程序 textarea 的 placeholder 需要单独类 */
+.textarea .placeholder-left {
+  text-align: left;
+}
+
+/* ============ 列表项 ============ */
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md) 0;
+  border-bottom: 1rpx solid var(--color-border);
+}
+.list-item:last-child {
+  border-bottom: none;
+}
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-bottom: 1rpx solid var(--color-border);
+}
+.player-row:last-child {
+  border-bottom: none;
+}
+.player-row picker {
+  flex: 0 0 216rpx;
+  min-width: 0;
+}
+.player-row .picker.sm {
+  width: 100%;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.player-main {
+  flex: 1;
+  min-width: 0;
+  margin: 0 var(--space-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: var(--color-border);
+  flex: 0 0 auto;
+}
+/* 头像占位（无图时用首字） */
+.avatar-ph {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+}
+
+/* ============ 分段导航（页内二级导航，替代新增 tabBar） ============ */
+.seg {
+  display: flex;
+  gap: var(--space-xs);
+  margin: var(--space-md);
+  padding: 6rpx;
+  background: var(--color-fill);
+  border-radius: var(--radius-lg);
+}
+.seg-item {
+  flex: 1;
+  text-align: center;
+  padding: var(--space-sm) 0;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+}
+.seg-item.seg-active {
+  background: var(--color-card);
+  color: var(--color-primary);
+  font-weight: 600;
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.06);
+}
+.arrow {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
+}
+.camp-name {
+  font-weight: 600;
+  font-size: var(--font-size-md);
+  flex: 1;
+  min-width: 0;
+}
+.score-input,
+input.score-input {
+  flex: 1;
+  min-width: 120rpx;
+  max-width: 240rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  background: var(--color-fill);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-sm);
+  text-align: center;
+  font-size: var(--font-size-base);
+}
+/* 保险：确保 input placeholder 也居中 */
+.placeholder-center {
+  text-align: center;
+}
+.camp-line {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-sm) 0;
+  border-top: 1rpx solid var(--color-border);
+  font-size: var(--font-size-base);
+}
+.del-text {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  margin-left: var(--space-sm);
+}
+.del {
+  color: var(--color-danger);
+  font-size: var(--font-size-base);
+  padding: 0 var(--space-xs);
+}
+.tap {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+}
+
+/* 状态胶囊（用于计分页的玩家状态切换：已出完 / MVP 等） */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 88rpx;
+  padding: 8rpx 18rpx;
+  border-radius: var(--radius-round);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-fill);
+}
+.chip.active {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+.chip.mvp.active {
+  color: #ff9c00;
+  background: #fff7e6;
+}
+.player-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* 赛季行：复用玩家行的左右布局，左侧名称+状态，右侧置顶/删除操作 */
+.season-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-bottom: 1rpx solid var(--color-border);
+}
+.season-row:last-child {
+  border-bottom: none;
+}
+.season-main {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.season-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-left: auto;
+  flex-shrink: 0;
+  max-width: 55%;
+}
