@@ -155,7 +155,7 @@ async function main() {
           color: '#3b7dd8',
           players: [
             { player_id: players[2].id, score: 30, finished: true },
-            { player_id: players[3].id, score: 20, finished: false }, // 没出完，分数作废
+            { player_id: players[3].id, score: 20, finished: false }, // 没出完，分数不计入
           ],
         },
       ],
@@ -168,7 +168,7 @@ async function main() {
     check('获胜线 = 一半 = 100', () => assert.strictEqual(match.win_line, 100));
     check('红队 60+41=101 分', () => assert.strictEqual(red.total_score, 101));
     check('红队超过 100 分判获胜', () => assert.strictEqual(red.is_winner, true));
-    check('蓝队只算已出完的 30 分（20 分作废）', () => {
+    check('蓝队只算已出完的 30 分（20 分未出完）', () => {
       assert.strictEqual(blue.total_score, 30);
       assert.strictEqual(blue.is_winner, false);
     });

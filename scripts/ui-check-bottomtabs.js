@@ -1,4 +1,4 @@
-// 窄屏底部 Tab 栏顺序验收：短名与图标须为 计分/对局/高光/排名/选手/赛季
+// 窄屏底部 Tab 栏顺序验收：短名与图标须为 计分/对局/高光/排名/玩家/赛季
 const BASE = 'http://127.0.0.1:5178';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
