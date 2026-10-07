@@ -76,9 +76,12 @@ export const store = {
     if (this.currentSeasonId !== null && !this.seasons.some((s) => s.id === this.currentSeasonId)) {
       this.currentSeasonId = null;
     }
-    // 首次进入自动选中最近一个进行中的赛季
+    // 首次进入自动选中「当前赛季」（pinned=1）；无当前赛季时回退到最近一个进行中的赛季
     if (this.currentSeasonId === null) {
-      const active = this.seasons.find((s) => s.status === 'active') || this.seasons[0];
+      const active =
+        this.seasons.find((s) => s.pinned === 1) ||
+        this.seasons.find((s) => s.status === 'active') ||
+        this.seasons[0];
       this.currentSeasonId = active ? active.id : null;
     }
 
