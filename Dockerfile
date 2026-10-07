@@ -1,6 +1,8 @@
 # 沟通牌计分平台 —— 服务器环境无关部署
 # 构建：podman build -t goutongpai .
-# 运行：podman run -d -p 127.0.0.1:5178:5178 -v /opt/goutongpai-data:/app/data --name goutongpai goutongpai
+# 运行：podman run -d --pull=never -p 127.0.0.1:5178:5178 -v /opt/goutongpai-data:/app/data --name goutongpai --security-opt seccomp=unconfined localhost/goutongpai:latest
+# 注：--pull=never + localhost/ 全限定标签用于规避短名解析（部分环境 unqualified-search-registries 为空会报 invalid reference format）；
+#     --security-opt seccomp=unconfined 用于放行 glibc 2.34+ clone3，否则 Node 启动期线程创建会被拦导致容器秒退。
 # 用 node:22-slim（Debian/glibc）而非 alpine（musl）：node:sqlite 在 musl 上会报 disk I/O error，glibc 正常。
 
 FROM node:22-slim

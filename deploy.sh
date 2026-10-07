@@ -6,7 +6,11 @@
 set -e
 cd "$(dirname "$0")"   # 切到脚本所在目录（= 项目根），确保 podman build . 的上下文正确
 
-IMAGE="goutongpai"
+# 构建时的短标签（podman 会自动加 localhost/ 前缀，即 localhost/goutongpai:latest）
+BUILD_TAG="goutongpai"
+# run 时显式用全限定本地标签，避免短名解析 + registry 拉取（部分环境 unqualified-search-registries
+# 为空会导致 "unable to pull : invalid reference format"）；--pull=never 强制只用本地镜像。
+IMAGE="localhost/goutongpai:latest"
 CONTAINER="goutongpai"
 PORT="127.0.0.1:5178:5178"
 # 使用宿主机真实目录 bind 挂载，而非命名卷：容器引擎的命名卷底层存储文件系统
@@ -14,8 +18,8 @@ PORT="127.0.0.1:5178:5178"
 # bind 挂到宿主机的 ext4/xfs 目录可彻底规避该问题，且能直接 ls / 备份。
 DATA_DIR="/opt/goutongpai-data"
 
-echo "==> 构建镜像 $IMAGE"
-podman build -t "$IMAGE" .
+echo "==> 构建镜像 $BUILD_TAG"
+podman build -t "$BUILD_TAG" .
 
 echo "==> 重启容器 $CONTAINER（数据目录 $DATA_DIR 保持不变）"
 # run 前先停并删除同名旧容器，否则容器已存在会报错；数据在目录里不受影响
@@ -29,6 +33,7 @@ mkdir -p "$DATA_DIR"                 # 确保宿主机数据目录存在（首�
 # 放开 seccomp 后 Node 正常启动。这是单机自用、且已绑定 127.0.0.1 的场景，可接受；
 # 若想收紧，可改用只放行 clone3/clone 的自定义 seccomp profile 替代 unconfined。
 podman run -d \
+  --pull=never \
   --name "$CONTAINER" \
   -p "$PORT" \
   -v "$DATA_DIR:/app/data" \
