@@ -1,56 +1,221 @@
 <view class="page">
-  <view class="card">
-    <view class="title">当前赛季</view>
-    <picker wx:if="{{seasons.length}}" range="{{seasons}}" range-key="name" value="{{currentSeasonIndex}}" bindchange="onSeasonChange">
-      <view class="picker">{{seasons[currentSeasonIndex].name}} ▾</view>
-    </picker>
-    <view wx:else class="muted">还没有赛季，先在下方创建</view>
-  </view>
+  <!-- 顶部固定区：分段导航 + 当前 tab 的头部卡片，不随列表滚动 -->
+  <view class="mine-sticky-header">
+    <!-- 页内分段导航：玩家 / 赛季 / 设置（底部 tabBar 保持 5 个，相关管理用 seg 而非新增 tab，详见规范 §8） -->
+    <view class="seg">
+      <view class="seg-item {{tab==='players'?'seg-active':''}}" bindtap="setTab" data-tab="players">玩家</view>
+      <view class="seg-item {{tab==='seasons'?'seg-active':''}}" bindtap="setTab" data-tab="seasons">赛季</view>
+      <view class="seg-item {{tab==='settings'?'seg-active':''}}" bindtap="setTab" data-tab="settings">设置</view>
+    </view>
 
-  <view class="card">
-    <view class="row-between">
-      <view class="title">选手（{{players.length}}）</view>
-      <button class="btn-primary mini" bindtap="togglePlayerForm">+ 新建</button>
-    </view>
-    <view wx:if="{{showPlayerForm}}" class="form">
-      <input class="input" placeholder="昵称" value="{{newPlayerName}}" bindinput="onPlayerName" />
-      <input class="input" placeholder="打法标签（可选）" value="{{newPlayerStyle}}" bindinput="onPlayerStyle" />
-      <button class="btn-primary" bindtap="submitPlayer">保存</button>
-    </view>
-    <view wx:for="{{players}}" wx:key="id" class="list-item">
-      <image wx:if="{{item.avatarUrl}}" class="avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
-      <view class="player-main">
-        <text class="name">{{item.name}}</text>
-        <text wx:if="{{item.style}}" class="muted"> · {{item.style}}</text>
+    <!-- 玩家 header -->
+    <view class="card" wx:if="{{tab==='players'}}">
+      <view class="row-between card-head">
+        <view class="title">玩家（{{players.length}}）</view>
+        <button class="btn-primary mini" hover-class="btn-hover" catchtap="togglePlayerForm">{{showPlayerForm ? '- 收起' : '+ 新建'}}</button>
       </view>
-      <button class="btn-ghost mini" data-id="{{item.id}}" bindtap="uploadAvatar">头像</button>
-      <text wx:if="{{item.active}}" class="tag">启用</text>
+      <view wx:if="{{showPlayerForm}}" class="form">
+        <view class="form-row">
+          <text class="form-label form-label--justify">昵称</text>
+          <input class="input" placeholder="昵称（最多6个字）" placeholder-class="placeholder-left" value="{{newPlayerName}}" maxlength="6" bindinput="onPlayerName" />
+        </view>
+        <view class="form-row">
+          <text class="form-label form-label--justify">编号</text>
+          <input class="input" placeholder="001-999（可选）" type="number" placeholder-class="placeholder-left" value="{{newPlayerCode}}" maxlength="3" bindinput="onPlayerCode" />
+        </view>
+        <view class="form-row">
+          <text class="form-label form-label--justify">签名</text>
+          <input class="input" placeholder="签名（可选）" placeholder-class="placeholder-left" value="{{newPlayerStyle}}" bindinput="onPlayerStyle" />
+        </view>
+        <button class="btn-primary mini" hover-class="btn-hover" catchtap="submitPlayer">保存</button>
+      </view>
     </view>
-    <view wx:if="{{!players.length}}" class="empty">暂无选手</view>
+
+    <!-- 赛季 header -->
+    <view class="card" wx:if="{{tab==='seasons'}}">
+      <view class="row-between card-head">
+        <view class="title">赛季（{{seasons.length}}）</view>
+        <button class="btn-primary mini" hover-class="btn-hover" catchtap="toggleSeasonForm">{{showSeasonForm ? '- 收起' : '+ 新建'}}</button>
+      </view>
+      <view wx:if="{{showSeasonForm}}" class="form">
+        <view class="form-row">
+          <text class="form-label form-label--justify">名称</text>
+          <input class="input" placeholder="赛季名称（最多8个字）" placeholder-class="placeholder-left" value="{{newSeasonName}}" maxlength="8" bindinput="onSeasonName" />
+        </view>
+        <view class="form-row form-row--inline">
+          <view class="form-field">
+            <text class="form-label form-label--inline">开始</text>
+            <picker mode="date" value="{{newSeasonStartedOn}}" bindchange="onSeasonStartedOn">
+              <view class="picker-value"><text class="picker-text {{newSeasonStartedOn ? '' : 'picker-placeholder'}}">{{newSeasonStartedOn || '开始时间'}}</text><text class="picker-arrow">▾</text></view>
+            </picker>
+          </view>
+          <view class="form-field">
+            <text class="form-label form-label--inline">结束</text>
+            <picker mode="date" value="{{newSeasonEndedOn}}" bindchange="onSeasonEndedOn">
+              <view class="picker-value"><text class="picker-text {{newSeasonEndedOn ? '' : 'picker-placeholder'}}">{{newSeasonEndedOn || '结束时间'}}</text><text class="picker-arrow">▾</text></view>
+            </picker>
+          </view>
+        </view>
+        <view class="form-row form-row--top">
+          <text class="form-label form-label--top">说明</text>
+          <textarea class="textarea" placeholder="赛季说明（可选）" placeholder-class="placeholder-left" value="{{newSeasonNote}}" maxlength="200" auto-height bindinput="onSeasonNote" />
+        </view>
+        <button class="btn-primary mini" hover-class="btn-hover" catchtap="submitSeason">创建</button>
+      </view>
+      <view wx:if="{{!seasons.length}}" class="muted">还没有赛季，点「+ 新建」创建</view>
+    </view>
   </view>
 
-  <view class="card">
-    <view class="row-between">
-      <view class="title">赛季（{{seasons.length}}）</view>
-      <button class="btn-primary mini" bindtap="toggleSeasonForm">+ 新建</button>
+  <!-- 玩家 -->
+  <block wx:if="{{tab==='players'}}">
+    <view wx:for="{{players}}" wx:key="id" class="card player-card" bindtap="viewPlayer" data-id="{{item.id}}">
+      <view class="player-card__header {{item.photoUrl ? 'has-photo' : ''}}">
+        <image wx:if="{{item.photoUrl}}" class="player-card__header-bg" src="{{item.photoUrl}}" mode="aspectFill" />
+        <view wx:else class="player-card__header-pattern"></view>
+        <view class="player-card__header-inner">
+          <view class="player-card__top">
+            <image wx:if="{{item.avatarUrl}}" class="player-card__avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+            <view wx:else class="player-card__avatar player-card__avatar-ph">{{item.initial}}</view>
+            <view class="player-card__heading">
+              <view class="player-card__name">{{item.name}}</view>
+              <view class="player-card__sub">
+                <text>#{{item.playerCode || item.id}}</text>
+                <text wx:if="{{item.style}}" class="tag-soft">{{item.style}}</text>
+              </view>
+            </view>
+            <view wx:if="{{item.mvps > 0}}" class="player-card__mvp">🏆*{{item.mvps}}</view>
+          </view>
+          <view class="player-card__bio {{item.hasBio ? '' : 'player-card__bio--placeholder'}}">{{item.bio || '暂无签名'}}</view>
+        </view>
+      </view>
+      <view class="player-card__body">
+        <view class="season-card__info">
+          <view class="info-item">
+            <text class="info-label">出场</text>
+            <text class="info-value">{{item.games}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">胜局</text>
+            <text class="info-value">{{item.wins}}</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">胜率</text>
+            <text class="info-value">{{item.winRate}}%</text>
+          </view>
+          <view class="info-item">
+            <text class="info-label">总得分</text>
+            <text class="info-value">{{item.banked}}</text>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{item.id !== editingPlayerId}}" class="player-card__foot">
+        <button class="btn-ghost mini" hover-class="btn-hover" catchtap="uploadAvatar" data-id="{{item.id}}">头像</button>
+        <button class="btn-ghost mini" hover-class="btn-hover" catchtap="uploadPhoto" data-id="{{item.id}}">背景</button>
+        <button class="btn-ghost mini" hover-class="btn-hover" catchtap="openEditPlayer" data-id="{{item.id}}">编辑</button>
+        <button class="btn-danger mini {{item.games > 0 ? 'btn-disabled' : ''}}" disabled="{{item.games > 0}}" hover-class="btn-hover" catchtap="deletePlayer" data-id="{{item.id}}">删除</button>
+      </view>
+      <view wx:if="{{item.id === editingPlayerId}}" class="form player-edit" catchtap="noop">
+        <view class="form-row">
+          <text class="form-label form-label--justify">昵称</text>
+          <input class="input" placeholder="昵称（最多6个字）" placeholder-class="placeholder-left" value="{{editPlayerName}}" maxlength="6" bindinput="onEditPlayerName" />
+        </view>
+        <view class="form-row">
+          <text class="form-label form-label--justify">ID</text>
+          <input class="input input--readonly" placeholder="ID（不可修改）" placeholder-class="placeholder-left" value="{{editPlayerCode}}" disabled />
+        </view>
+        <view class="form-row form-row--top">
+          <text class="form-label form-label--top">签名</text>
+          <textarea class="textarea" placeholder="签名（可选）" placeholder-class="placeholder-left" value="{{editPlayerBio}}" maxlength="300" auto-height bindinput="onEditPlayerBio" />
+        </view>
+        <view class="row-between">
+          <button class="btn-ghost mini" hover-class="btn-hover" catchtap="cancelEditPlayer">取消</button>
+          <button class="btn-primary mini" hover-class="btn-hover" catchtap="submitEditPlayer">保存</button>
+        </view>
+      </view>
     </view>
-    <view wx:if="{{showSeasonForm}}" class="form">
-      <input class="input" placeholder="赛季名称" value="{{newSeasonName}}" bindinput="onSeasonName" />
-      <picker range="{{deckOptions}}" value="{{deckIndex}}" bindchange="onDeckChange">
-        <view class="picker">牌副数：{{deckOptions[deckIndex]}} ▾</view>
-      </picker>
-      <button class="btn-primary" bindtap="submitSeason">创建</button>
-    </view>
-    <view wx:for="{{seasons}}" wx:key="id" class="list-item">
-      <text class="name">{{item.name}}</text>
-      <text class="muted">{{item.deck_count}}副 · {{item.status === 'active' ? '进行中' : '已归档'}}</text>
-    </view>
-  </view>
 
-  <view class="card muted row-between privacy-row" bindtap="openPrivacy">
-    <text>隐私政策</text>
-    <text class="arrow">›</text>
-  </view>
+    <view wx:if="{{!players.length}}" class="card empty">暂无玩家，点「+ 新建」登记</view>
+  </block>
 
-  <view class="card muted">登录身份：{{openidMasked}}</view>
+  <!-- 赛季 -->
+  <block wx:if="{{tab==='seasons'}}">
+    <view wx:if="{{!seasons.length}}" class="card empty">还没有赛季，点「+ 新建」创建</view>
+
+    <view wx:for="{{seasons}}" wx:key="id" class="card season-card">
+      <view class="season-card__header {{item.photoUrl ? 'has-photo' : ''}}">
+        <image wx:if="{{item.photoUrl}}" class="season-card__header-bg" src="{{item.photoUrl}}" mode="aspectFill" />
+        <view wx:else class="season-card__header-pattern"></view>
+        <view class="season-card__header-inner">
+          <view wx:if="{{item.pinned}}" class="season-card__current">当前</view>
+          <view class="season-card__head">
+            <text class="name">{{item.name}}</text>
+          </view>
+          <view class="season-card__note {{item.hasNote ? '' : 'season-card__note--placeholder'}}">{{item.note || '暂无说明'}}</view>
+        </view>
+      </view>
+      <view class="season-card__info">
+        <view class="info-item">
+          <text class="info-label">开始</text>
+          <text class="info-value">{{item.started_on || '—'}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">结束</text>
+          <text class="info-value">{{item.ended_on || '—'}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">对局</text>
+          <text class="info-value">{{item.matchCount == null ? '--' : item.matchCount}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">玩家</text>
+          <text class="info-value">{{item.playerCount == null ? '--' : item.playerCount}}</text>
+        </view>
+      </view>
+      <view wx:if="{{item.id !== editingId}}" class="season-card__foot">
+        <button class="btn-ghost mini {{item.pinned ? 'btn-disabled' : ''}}" disabled="{{item.pinned}}" hover-class="btn-hover" catchtap="pinSeason" data-id="{{item.id}}">置为当前</button>
+        <button class="btn-ghost mini" hover-class="btn-hover" catchtap="uploadSeasonPhoto" data-id="{{item.id}}">背景</button>
+        <button class="btn-ghost mini" hover-class="btn-hover" catchtap="openEditSeason" data-id="{{item.id}}">编辑</button>
+        <button class="btn-danger mini {{item.matchCount > 0 ? 'btn-disabled' : ''}}" disabled="{{item.matchCount > 0}}" hover-class="btn-hover" catchtap="deleteSeason" data-id="{{item.id}}">删除</button>
+      </view>
+      <view wx:if="{{item.id === editingId}}" class="form season-edit">
+        <view class="form-row">
+          <text class="form-label form-label--justify">名称</text>
+          <input class="input" placeholder="赛季名称（最多8个字）" placeholder-class="placeholder-left" value="{{editName}}" maxlength="8" bindinput="onEditName" />
+        </view>
+        <view class="form-row form-row--inline">
+          <view class="form-field">
+            <text class="form-label form-label--inline">开始</text>
+            <picker mode="date" value="{{editStartedOn}}" bindchange="onEditStartedOn">
+              <view class="picker-value"><text class="picker-text {{editStartedOn ? '' : 'picker-placeholder'}}">{{editStartedOn || '开始时间'}}</text><text class="picker-arrow">▾</text></view>
+            </picker>
+          </view>
+          <view class="form-field">
+            <text class="form-label form-label--inline">结束</text>
+            <picker mode="date" value="{{editEndedOn}}" bindchange="onEditEndedOn">
+              <view class="picker-value"><text class="picker-text {{editEndedOn ? '' : 'picker-placeholder'}}">{{editEndedOn || '结束时间'}}</text><text class="picker-arrow">▾</text></view>
+            </picker>
+          </view>
+        </view>
+        <view class="form-row form-row--top">
+          <text class="form-label form-label--top">说明</text>
+          <textarea class="textarea" placeholder="赛季说明（可选）" placeholder-class="placeholder-left" value="{{editNote}}" maxlength="200" auto-height bindinput="onEditNote" />
+        </view>
+        <view class="row-between">
+          <button class="btn-ghost mini" hover-class="btn-hover" catchtap="cancelEditSeason">取消</button>
+          <button class="btn-primary mini" hover-class="btn-hover" catchtap="submitEditSeason">保存</button>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 设置 -->
+  <block wx:if="{{tab==='settings'}}">
+    <view class="card muted row-between" bindtap="openPrivacy">
+      <text>隐私政策</text>
+      <text class="arrow">›</text>
+    </view>
+    <view class="card muted">登录身份：{{openidMasked}}</view>
+  </block>
+
+  <view class="safe-bottom"></view>
 </view>

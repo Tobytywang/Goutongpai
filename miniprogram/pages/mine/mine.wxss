@@ -1,1 +1,15 @@
 /* 通用样式见 app.wxss */
+
+/* 我的页顶部固定区：seg 导航 + 当前 tab 的头部卡片，整体吸顶不随列表滚动 */
+.mine-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-bg);
+  /* 把原本由 .seg margin-top 漏出的顶部灰色间距，变成父容器自身的 padding，
+     避免吸顶时 margin 被收回导致上方空间突然变小 */
+  padding-top: var(--space-md);
+}
+.mine-sticky-header .seg {
+  margin-top: 0;
+}
