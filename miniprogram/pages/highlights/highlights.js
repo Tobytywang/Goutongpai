@@ -1,6 +1,7 @@
 // 高光时刻列表（复用 bootstrap.highlights；按赛季过滤，默认「全部赛季」）
 const { get, getBootstrap } = require('../../utils/request');
 const { pickCurrentSeason, withAllSeason } = require('../../utils/season');
+const { buildShare, enableShareMenu } = require('../../utils/share');
 
 Page({
   data: {
@@ -56,5 +57,10 @@ Page({
       seasonId: id,
       highlights: this.filterBySeason(this.data.allHighlights, id),
     });
+  },
+
+  // 转发：全站统一分享内容（固定宣传语 + 落地排行榜），见 utils/share.js
+  onShareAppMessage() {
+    return buildShare();
   },
 });

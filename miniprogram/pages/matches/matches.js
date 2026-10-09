@@ -1,6 +1,7 @@
 // 对局列表（复用 bootstrap.matches，与 Web 端同一数据源；按赛季过滤，默认「全部赛季」）
 const { get, del, getBootstrap } = require('../../utils/request');
 const { withAllSeason } = require('../../utils/season');
+const { buildShare, enableShareMenu } = require('../../utils/share');
 
 Page({
   data: {
@@ -92,5 +93,10 @@ Page({
     } catch (err) {
       wx.showToast({ title: err.message || '删除失败', icon: 'none' });
     }
+  },
+
+  // 转发：全站统一分享内容（固定宣传语 + 落地排行榜），见 utils/share.js
+  onShareAppMessage() {
+    return buildShare();
   },
 });

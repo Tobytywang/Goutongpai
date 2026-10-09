@@ -2,6 +2,8 @@
 const { get, post, put, del, BASE, getBootstrap } = require('../../utils/request');
 const { uploadPlayerImage, uploadSeasonImage } = require('../../utils/upload');
 const privacy = require('../../utils/privacy');
+const { buildShare, enableShareMenu } = require('../../utils/share');
+const { APP_VERSION } = require('../../utils/releases');
 
 function maskOpenid() {
   const o = wx.getStorageSync('openid') || '';

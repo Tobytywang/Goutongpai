@@ -1,6 +1,7 @@
 // 玩家资料查看页：封面(背景) + 头像 + 基础信息；支持更换头像/背景
 const { get, del, BASE, getBootstrap } = require('../../utils/request');
 const { uploadPlayerImage } = require('../../utils/upload');
+const { buildShare, enableShareMenu } = require('../../utils/share');
 
 function withMedia(p) {
   return Object.assign({}, p, {
@@ -69,5 +70,10 @@ Page({
     } catch (err) {
       wx.showToast({ title: err.message || '删除失败', icon: 'none' });
     }
+  },
+
+  // 转发：全站统一分享内容（固定宣传语 + 落地排行榜），见 utils/share.js
+  onShareAppMessage() {
+    return buildShare();
   },
 });

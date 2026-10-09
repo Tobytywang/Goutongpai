@@ -2,6 +2,7 @@
 const { get, post, getBootstrap } = require('../../utils/request');
 const score = require('../../utils/score');
 const { pickCurrentSeason, withSeasonLabels } = require('../../utils/season');
+const { buildShare, enableShareMenu } = require('../../utils/share');
 
 // 与网页端计分台保持一致：红 / 蓝 / 绿 / 紫
 const CAMP_PRESETS = [
@@ -517,5 +518,10 @@ Page({
     } finally {
       this.setData({ submitting: false });
     }
+  },
+
+  // 转发：全站统一分享内容（固定宣传语 + 落地排行榜），见 utils/share.js
+  onShareAppMessage() {
+    return buildShare();
   },
 });

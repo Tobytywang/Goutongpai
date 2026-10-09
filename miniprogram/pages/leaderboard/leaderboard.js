@@ -2,6 +2,7 @@
 // 关键口径：玩家成绩只算「总得分」(banked) = 仅在「把牌出完」的局里录得的分数之和。
 const { get, getBootstrap } = require('../../utils/request');
 const { withAllSeason } = require('../../utils/season');
+const { buildShare, enableShareMenu } = require('../../utils/share');
 
 // 排序口径：与页面中 8 项展示顺序一致（出场 → 胜局 → 胜率 → 出完率 → 总得分 → 场均得分 → 最高得分 → MVP 次数）
 const SORT_KEYS = [
@@ -222,6 +223,11 @@ Page({
     const i = Number(e.detail.value);
     this.setData({ sortIndex: i });
     this.recompute();
+  },
+
+  // 转发：全站统一分享内容（固定宣传语 + 落地排行榜），见 utils/share.js
+  onShareAppMessage() {
+    return buildShare();
   },
 
 });
