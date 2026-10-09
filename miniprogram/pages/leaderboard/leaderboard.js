@@ -42,6 +42,7 @@ Page({
   },
 
   onShow() {
+    enableShareMenu();
     this.load();
   },
 

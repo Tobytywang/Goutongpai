@@ -20,6 +20,7 @@ Page({
   },
 
   onShow() {
+    enableShareMenu();
     if (this.playerId) this.load();
   },
 

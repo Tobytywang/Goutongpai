@@ -91,9 +91,11 @@ Page({
     editPlayerBio: '',
     loading: true,
     error: '',
+    appVersion: APP_VERSION,
   },
 
   onShow() {
+    enableShareMenu();
     this.loadAll();
   },
 
