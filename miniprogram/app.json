@@ -5,7 +5,8 @@
     "pages/highlights/highlights",
     "pages/leaderboard/leaderboard",
     "pages/mine/mine",
-    "pages/player/player"
+    "pages/player/player",
+    "pages/about/about"
   ],
   "window": {
     "navigationBarBackgroundColor": "#0f5132",

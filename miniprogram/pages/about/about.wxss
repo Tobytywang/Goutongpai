@@ -1,0 +1,67 @@
+/* 关于沟通牌页：克制风格，复用全局 .card / .page / .safe-bottom */
+.about-hero {
+  text-align: center;
+  padding: 56rpx 24rpx 44rpx;
+}
+.about-hero__name {
+  font-size: 40rpx;
+  font-weight: 600;
+}
+.about-hero__meta {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.about-section-label {
+  margin: 28rpx 8rpx 12rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.about-list {
+  padding: 0 24rpx;
+}
+.about-item__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26rpx 4rpx;
+}
+.about-item:not(:first-child) .about-item__row {
+  border-top: 1rpx solid #f0f0f0;
+}
+.about-item__row--hover {
+  background: #fafafa;
+}
+.about-item__main {
+  flex: 1;
+  min-width: 0;
+}
+.about-item__title {
+  font-size: 30rpx;
+  color: #333;
+}
+.about-item__date {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+.about-item__arrow {
+  margin-left: 16rpx;
+  font-size: 32rpx;
+  color: #c8c8c8;
+  transform: rotate(0deg);
+  transition: transform 0.15s ease;
+}
+.about-item__arrow--open {
+  transform: rotate(90deg);
+}
+.about-item__notes {
+  padding: 0 4rpx 26rpx;
+}
+.about-item__note {
+  font-size: 27rpx;
+  color: #666;
+  line-height: 1.7;
+}

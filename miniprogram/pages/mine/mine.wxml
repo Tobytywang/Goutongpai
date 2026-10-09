@@ -210,6 +210,13 @@
 
   <!-- 设置 -->
   <block wx:if="{{tab==='settings'}}">
+    <view class="card muted row-between" hover-class="btn-hover" bindtap="goAbout">
+      <text>关于沟通牌</text>
+      <view class="row-between">
+        <text style="margin-right:12rpx;">版本 {{appVersion}}</text>
+        <text class="arrow">›</text>
+      </view>
+    </view>
     <view class="card muted row-between" bindtap="openPrivacy">
       <text>隐私政策</text>
       <text class="arrow">›</text>

@@ -479,4 +479,21 @@ Page({
   openPrivacy() {
     privacy.openContract();
   },
+
+  // 打开「关于沟通牌」：当前版本 + 历史版本发布说明
+  goAbout() {
+    wx.navigateTo({
+      url: '/pages/about/about',
+      // 失败兜底：页面未注册等异常时不再静默，直接把原因提示出来
+      fail: (err) => {
+        console.error('navigateTo about failed', err);
+        wx.showToast({ title: err.errMsg || '打开失败', icon: 'none' });
+      },
+    });
+  },
+
+  // 转发：全站统一分享内容（固定宣传语 + 落地排行榜），见 utils/share.js
+  onShareAppMessage() {
+    return buildShare();
+  },
 });
