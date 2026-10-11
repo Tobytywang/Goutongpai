@@ -23,5 +23,11 @@
     </view>
   </view>
 
+  <!-- 备案号公示（管局合规要求，必须展示） -->
+  <view class="about-beian">
+    <text class="about-beian__no" bindtap="copyBeian" data-no="{{beianNo}}">{{beianNo}}</text>
+    <view class="about-beian__tip">点击可复制 · 工信部备案查询 beian.miit.gov.cn</view>
+  </view>
+
   <view class="safe-bottom"></view>
 </view>

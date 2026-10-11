@@ -2,9 +2,17 @@
 // 维护约定：每次上传新版本提审前——
 //   1. 把 APP_VERSION 改成本次版本号；
 //   2. 在 RELEASES 数组顶部加一条 { version, date, title, notes }，notes 为该版本更新要点。
-const APP_VERSION = '1.1.2';
+const APP_VERSION = '1.1.3';
 
 const RELEASES = [
+  {
+    version: '1.1.3',
+    date: '',
+    title: '修复',
+    notes: [
+      '「关于沟通牌」页底部公示 ICP 备案号（合规要求）',
+    ],
+  },
   {
     version: '1.1.2',
     date: '',

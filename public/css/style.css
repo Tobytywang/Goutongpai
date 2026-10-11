@@ -564,6 +564,15 @@ a {
   color: var(--ink-400);
   font-size: var(--fs-xs);
 }
+.footer__beian {
+  flex-basis: 100%;
+  color: var(--ink-400);
+  text-decoration: none;
+}
+.footer__beian:hover {
+  color: var(--ink-700);
+  text-decoration: underline;
+}
 
 /* ---------------------------------------------------------------- 卡片 */
 

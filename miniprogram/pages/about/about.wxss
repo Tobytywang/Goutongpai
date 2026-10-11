@@ -65,3 +65,20 @@
   color: #666;
   line-height: 1.7;
 }
+
+/* 备案号公示：低调灰色小字，居中 */
+.about-beian {
+  margin: 32rpx 24rpx 0;
+  padding: 22rpx 16rpx;
+  text-align: center;
+}
+.about-beian__no {
+  font-size: 24rpx;
+  color: #aaa;
+  letter-spacing: 0.5rpx;
+}
+.about-beian__tip {
+  margin-top: 8rpx;
+  font-size: 21rpx;
+  color: #bbb;
+}
