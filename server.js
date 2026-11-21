@@ -156,9 +156,16 @@ const routes = [
   ['POST', /^\/api\/seasons\/(\d+)\/photo$/, (ctx) => api.uploadSeasonImage(Number(ctx.params[0]), ctx.body)],
   ['DELETE', /^\/api\/seasons\/(\d+)$/, (ctx) => api.deleteSeason(Number(ctx.params[0]))],
 
+  // 技能字典：由「我的 → 设置 → 技能」独立页维护，bootstrap 也会下发同一份列表
+  ['GET', /^\/api\/skills$/, () => api.listSkills()],
+  ['POST', /^\/api\/skills$/, (ctx) => api.createSkill(ctx.body)],
+  ['PUT', /^\/api\/skills\/(\d+)$/, (ctx) => api.updateSkill(Number(ctx.params[0]), ctx.body)],
+  ['DELETE', /^\/api\/skills\/(\d+)$/, (ctx) => api.deleteSkill(Number(ctx.params[0]))],
+
   ['GET', /^\/api\/matches$/, () => api.bootstrap().matches],
   ['POST', /^\/api\/matches$/, (ctx) => api.createMatch(ctx.body)],
   ['GET', /^\/api\/matches\/(\d+)$/, (ctx) => api.getMatch(Number(ctx.params[0]))],
+  ['PUT', /^\/api\/matches\/(\d+)$/, (ctx) => api.updateMatch(Number(ctx.params[0]), ctx.body)],
   ['DELETE', /^\/api\/matches\/(\d+)$/, (ctx) => api.deleteMatch(Number(ctx.params[0]))],
 
   ['GET', /^\/api\/highlights$/, () => api.bootstrap().highlights],
