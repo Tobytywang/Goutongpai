@@ -1,5 +1,28 @@
 /* 通用样式见 app.wxss */
 
+/* 顶部表单三行（用户 2026-11-09 要求）：
+   行1 日期独占 / 行2 第几局 + 牌副数平分 / 行3 类型独占。
+   独占行沿用全局 .form-row + .form-label--justify（96rpx + 24rpx，与赛季行同款），
+   picker 内距保持全局默认 16/24rpx，四行灰框左边缘因此对齐。
+   只有行2 是并排两列，用 flex:1 1 0% 严格各占一半并收紧内距。
+   只作用于计分页，不改 app.wxss 的通用两列规则。 */
+.sticky-header .form-row--inline {
+  gap: var(--space-sm);
+}
+.sticky-header .form-row--half .form-field {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+/* 并排两列偏窄，内距压到 space-sm / space-xs，
+   保证两位数局号与牌副数不被省略号截断 */
+.sticky-header .form-row--inline .picker-value {
+  padding-left: var(--space-sm);
+  padding-right: var(--space-sm);
+}
+.sticky-header .form-row--inline .picker-text {
+  margin-right: var(--space-xs);
+}
+
 /* 阵营头部：左侧阵营名，右侧小计 + 删除 */
 .camp-head {
   align-items: center;
@@ -84,6 +107,22 @@
   padding: 8rpx 0 0;
   font-size: 22rpx;
   color: var(--color-text-secondary);
+}
+
+/* 默认前 6 行不可删：保留删除按钮的位置，占位但不可见、不可点 */
+.del--placeholder {
+  visibility: hidden;
+}
+
+/* 不能保存的原因：只在存在问题时出现，红色小字，多项用「 · 」合并成一行。
+   文案已压缩成「项目 + 当前/上限」的短记法，最长一行约 21 个汉字（24rpx × 21 ≈ 504rpx
+   < 卡片可用宽度 670rpx），因此强制不换行 */
+.rule-warns {
+  margin-top: 6rpx;
+  white-space: nowrap;
+}
+.rule-warns .warn {
+  line-height: 1.4;
 }
 
 /* 未通过校验时禁用提交按钮：不使用 opacity（会导致文字几乎看不见），改用实色灰底+深灰字 */

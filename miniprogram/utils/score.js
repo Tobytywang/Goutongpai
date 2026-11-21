@@ -32,6 +32,19 @@ function clampDeckCount(deckCount) {
   return n;
 }
 
+/**
+ * 每个阵营的最小玩家数，同时也是「该阵营不可删除的行数」：
+ * 2 个阵营 → 每队 3 人；3/4 个阵营 → 每队 2 人。
+ *
+ * 计分页（新建录入）与「对局」页编辑态共用这一处口径 —— 两页的删除按钮锁定规则
+ * 必须同源，否则会出现「录入时删不掉、编辑时能删掉」，把阵营人数改到规则下限之下。
+ * campCount 取当前阵营数；调用方传的是数组长度，故先兜底成数字再判 <= 2。
+ */
+function playersPerCamp(campCount) {
+  const n = Number(campCount);
+  return Number.isFinite(n) && n <= 2 ? 3 : 2;
+}
+
 function toScore(value) {
   const n = Math.floor(Number(value));
   if (!Number.isFinite(n) || n < 0) return 0;
@@ -98,6 +111,7 @@ module.exports = {
   deckTotal,
   winLine,
   clampDeckCount,
+  playersPerCamp,
   toScore,
   computeMatch,
   describeMatch,

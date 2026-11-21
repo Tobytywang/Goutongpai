@@ -21,6 +21,7 @@ page {
   --font-size-md: 30rpx;
   --font-size-lg: 34rpx;
   --font-size-xl: 40rpx;
+  --font-size-2xl: 44rpx;
 
   --space-xs: 8rpx;
   --space-sm: 16rpx;
@@ -662,6 +663,13 @@ button::after {
 .picker-right .picker-text {
   text-align: right;
 }
+/* 只读值框（非 picker）：纯展示的数值靠右，与同一表单里 .picker-right 的值落在同一条右边界上。
+   用于「牌副数 / 获胜线」这类没有箭头、没有锁的值框——默认 .picker-text 是左对齐，
+   放进只读框后会与上下行的赛季 / 类型明显不齐。margin-right 归零，因为右侧没有箭头需要让位。 */
+.picker-value--right .picker-text {
+  text-align: right;
+  margin-right: 0;
+}
 .picker-right {
   flex: 1;
   min-width: 0;
@@ -934,6 +942,72 @@ input.score-input {
   gap: var(--space-sm);
   margin-left: auto;
   flex-shrink: 0;
+}
+
+/* ============ 技能赛条件技能行 ============
+   只在「对局类型 = 技能赛」时渲染，作为玩家行的兄弟节点独占第二行，
+   因此不占用 .player-row 已饱和的横向空间，216rpx picker / 120~240rpx 得分框 /
+   88rpx chip 的硬约束全部保持不变。 */
+.player-skill-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0 0 var(--space-sm);
+  border-bottom: 1rpx solid var(--color-border);
+}
+.player-skill-row:last-child {
+  border-bottom: none;
+}
+/* 技能赛时玩家行的分割线交给技能行统一画，避免同组内出现两条线 */
+.has-skill .player-row {
+  border-bottom: none;
+}
+.skill-label {
+  flex: 0 0 80rpx;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+.skill-picker {
+  flex: 1;
+  min-width: 0;
+}
+.skill-picker-value {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-fill);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  overflow: hidden;
+}
+.skill-picker-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 未选技能时走 placeholder 色：原来用正文色，看起来像已经填好内容的输入框 */
+.skill-picker-text--empty {
+  color: var(--color-text-secondary);
+}
+/* 下拉箭头改用实心三角并单独控制大小：空心 ▾ 在 24rpx 下几乎没有存在感，
+   是这一行"看着像输入框"的主因 */
+.skill-picker-caret {
+  font-size: 20rpx;
+  margin-left: var(--space-sm);
+}
+/* 按下反馈：手指触到就有变化，强化"可点选"而不是"可键入" */
+.skill-picker-value--hover {
+  opacity: 0.75;
+}
+.skill-picker-empty {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
 }
 
 /* 赛季行：复用玩家行的左右布局，左侧名称+状态，右侧置顶/删除操作 */

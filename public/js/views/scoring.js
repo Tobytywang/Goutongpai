@@ -45,6 +45,8 @@ function blankDraft(season) {
     seq: nextMatchSeq(store.matches, playedAt),
     seqTouched: false, // 用户手改过序号后，换日期不再自动覆盖
     note: '',
+    // Web 端不开放技能赛录入（WEB_READONLY），草稿固定为普通赛；服务端默认也是 normal
+    type: 'normal',
     camps: blankCamps(),
     highlights: [],
   };
@@ -57,6 +59,9 @@ function loadDraft() {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || !Array.isArray(parsed.camps)) return null;
+
+    // 旧草稿没有 type 字段：按普通赛恢复，避免把 undefined 提交到枚举白名单
+    parsed.type = parsed.type === 'skill' ? 'skill' : 'normal';
 
     // 过滤掉已被删除的玩家
     const validIds = new Set(store.players.map((p) => p.id));
@@ -174,6 +179,64 @@ function campBanked(camp) {
 /** 未出完牌、不计入阵营总分的分数 */
 function campWasted(camp) {
   return camp.players.filter((p) => !p.finished).reduce((s, p) => s + num(p.score), 0);
+}
+
+/* ---------------------------------------------------------------- 录入约束
+
+   两个**独立**的获胜条件（与核心 score.computeMatch 同口径），命中任一即为获胜方：
+     ① 全队出完：本阵营全员出完牌，且存在对手阵营未全员出完；
+     ② 有效分过半：本阵营有效分严格超过获胜线。
+   有效分按玩家逐个累加：谁把牌出完，谁的分数才计入；若全场「都」没出完
+   （没有任何人出完牌），有效分为 0，自然谈不上过半 —— 此时那些分数只是未出完分。
+
+   硬约束（实时校验与保存前兜底共用，小程序计分页同规则）：
+     · 每局恰好 1 名 MVP；
+     · 不能两队同时达成：两方都全员出完、两方有效分都过半、一方出完 + 另一方过半，
+       都会冒出两个获胜方，一律拦下；
+     · 一个获胜方都不能没有：双方都没出完、也无人过半时本局没打完，不能结算。
+   合起来即「恰好 1 个获胜方，且全员出完的阵营最多 1 个」。
+   同一阵营既全员出完又过半，仍只算一个获胜方，允许保存。
+   界面只显示两条固定短句：「MVP 未设置」与「获胜条件不满足」。 */
+
+const ENTRY_ERR_MVP = 'MVP 未设置';
+const ENTRY_ERR_WIN = '获胜条件不满足';
+
+/**
+ * 校验一局录入，返回错误文案数组（空数组 = 通过），最多两条。
+ * @param {Array<{players:Array<{score:any, finished:boolean, is_mvp:boolean}>}>} camps
+ * @param {number} deckCount 牌副数
+ */
+function entryConstraintErrors(camps, deckCount) {
+  const errors = [];
+  const entries = camps.flatMap((c) => c.players);
+  const mvpCount = entries.filter((p) => p.is_mvp).length;
+  // 与小程序计分页同序：「获胜条件不满足」在前、「MVP 未设置」在后
+  const mvpBad = entries.length > 0 && mvpCount !== 1;
+
+  const line = winLineOf(deckCount);
+  const stats = camps.map((camp) => {
+    const list = camp.players;
+    return {
+      hasPlayers: list.length > 0,
+      allFinished: list.length > 0 && list.every((p) => p.finished),
+      // 有效分 = 已出完牌玩家的分数之和；全员都没出完时为 0
+      effectiveScore: list.filter((p) => p.finished).reduce((s, p) => s + num(p.score), 0),
+    };
+  });
+
+  const live = stats.filter((s) => s.hasPlayers);
+  if (live.length > 0) {
+    const anyUnfinished = live.some((s) => !s.allFinished);
+    const finishedCamps = live.filter((s) => s.allFinished).length;
+    // 两个独立条件，命中任一即为获胜方
+    const winners = live.filter(
+      (s) => (s.allFinished && anyUnfinished) || s.effectiveScore > line
+    ).length;
+    // 恰好 1 个获胜方（0 个 = 本局没打完，≥2 个 = 两队同时达成），且不能两方都全员出完
+    if (winners !== 1 || finishedCamps > 1) errors.push(ENTRY_ERR_WIN);
+  } // 空白录入（还没放玩家）不误报，按钮本来也因「没有玩家」而置灰
+  if (mvpBad) errors.push(ENTRY_ERR_MVP); // 放在获胜条件之后
+  return errors;
 }
 
 /* ---------------------------------------------------------------- 主渲染 */
@@ -355,7 +418,14 @@ export function renderScoring(root) {
       'div',
       { class: 'card__head' },
       h('h2', {}, '新建一局'),
-      h('span', { class: 'hint' }, '填分数 → 勾选谁把牌出完 → 保存')
+      h(
+        'span',
+        {
+          class: 'hint',
+          title: '每局恰好 1 名 MVP；最多一个阵营全员出完；一方全员出完时，其他阵营的有效分不能同时过线',
+        },
+        '填分数 → 勾出完（须有唯一获胜方）→ 选 1 名 MVP → 保存'
+      )
     ),
     setupBar,
     campsWrap,
@@ -399,6 +469,17 @@ export function renderScoring(root) {
 
   /** 每个阵营的 DOM 引用，便于局部刷新（不打断输入焦点） */
   const campViews = [];
+
+  /** MVP 改为全局单选后，重绘所有行的 ★ 按钮状态（按玩家 id 定位，不依赖 DOM 顺序） */
+  function paintMvpToggles() {
+    campsWrap.querySelectorAll('.srow__toggle.is-mvp').forEach((btn) => {
+      const camp = draft.camps[Number(btn.dataset.mvpCamp)];
+      const entry = camp && camp.players.find((p) => p.player_id === Number(btn.dataset.mvpPlayer));
+      const on = !!(entry && entry.is_mvp);
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-pressed', String(on));
+    });
+  }
 
   function unassignedPlayers() {
     const assigned = new Set(draft.camps.flatMap((c) => c.players.map((p) => p.player_id)));
@@ -473,12 +554,16 @@ export function renderScoring(root) {
       {
         class: `srow__toggle is-mvp${entry.is_mvp ? ' is-on' : ''}`,
         type: 'button',
-        title: '标记为本局 MVP',
+        title: '本局 MVP（每局恰好 1 名；选另一人会自动取消原选，再点一次可取消）',
         'aria-pressed': String(entry.is_mvp),
+        dataset: { mvpCamp: String(index), mvpPlayer: String(entry.player_id) },
         onclick: () => {
-          entry.is_mvp = !entry.is_mvp;
-          mvpToggle.classList.toggle('is-on', entry.is_mvp);
-          mvpToggle.setAttribute('aria-pressed', String(entry.is_mvp));
+          // 全局单选：一局只能有 1 名 MVP。先清空所有人，再切换当前这名
+          const wasOn = entry.is_mvp;
+          draft.camps.forEach((c) => c.players.forEach((p) => { p.is_mvp = false; }));
+          entry.is_mvp = !wasOn;
+          paintMvpToggles();
+          refresh(); // 刷新校验条与「保存本局」按钮状态
           persist();
         },
       },
@@ -962,8 +1047,14 @@ export function renderScoring(root) {
         if (num(p.score) > deckTotal) errors.push(`「${player ? player.name : '?'}」的单人分数 ${num(p.score)} 超过牌库总分`);
       }
     }
-    if (winners.length >= 1 && unclaimed > 0) warnings.push(`还有 ${unclaimed} 分未录入，但已分出胜负，可能漏录`);
-    if (winners.length > 1) warnings.push('多个阵营同时判定获胜，请核对分数');
+    // 录入约束：MVP 唯一 + 恰好 1 个获胜方（两个独立条件不能两队同时达成）
+    errors.push(...entryConstraintErrors(draft.camps, draft.deckCount));
+    const winCondBad = errors.includes(ENTRY_ERR_WIN);
+    // 约束没过时抑制预览 warnings，避免与「获胜条件不满足」重复提示
+    if (!winCondBad) {
+      if (winners.length >= 1 && unclaimed > 0) warnings.push(`还有 ${unclaimed} 分未录入，但已分出胜负，可能漏录`);
+      if (winners.length > 1) warnings.push('多个阵营同时判定获胜，请核对分数');
+    }
 
     const canSave =
       entries.length > 0 &&
@@ -988,7 +1079,10 @@ export function renderScoring(root) {
     };
 
     let text;
-    if (entries.length === 0) {
+    if (winCondBad) {
+      // 约束未通过时不展示胜负结论，避免结果行说「🏆 已获胜」、保存按钮却是灰的自相矛盾
+      text = h('span', { class: 'muted' }, '本局需恰好 1 个获胜方，请核对出完状态与有效分');
+    } else if (entries.length === 0) {
       text = h('span', { class: 'muted' }, '把玩家加入阵营后开始录分');
     } else if (winners.length === 1) {
       const w = winners[0];
@@ -1081,6 +1175,7 @@ export function renderScoring(root) {
         played_at: draft.playedAt,
         seq: draft.seq,
         note: draft.note,
+        type: draft.type === 'skill' ? 'skill' : 'normal',
         camps: draft.camps.map((c) => ({
           name: c.name,
           color: c.color,
@@ -1097,6 +1192,10 @@ export function renderScoring(root) {
       for (const c of payload.camps) {
         if (c.players.length < 2) throw new Error(`「${c.name}」玩家不足 2 名，请至少放 2 名玩家`);
       }
+
+      // 兜底：录入约束（正常情况下实时校验已禁用保存按钮，这里防绕过）
+      const constraintErrors = entryConstraintErrors(payload.camps, payload.deck_count);
+      if (constraintErrors.length) throw new Error(constraintErrors[0]);
 
       // 第二道保险：总录入分数不可超过牌库总分（牌库只有这么些分）
       const total = payload.camps.flatMap((c) => c.players).reduce((s, p) => s + p.score, 0);
@@ -1140,7 +1239,8 @@ export function renderScoring(root) {
       renderScoring(root);
     } catch (err) {
       notifyErr(err.message || '保存失败');
-      if (btn) btn.disabled = false;
+      // 重新按当前录入状态刷新保存行：校验未通过时按钮保持灰色，不无条件启用
+      refresh();
     }
   }
 

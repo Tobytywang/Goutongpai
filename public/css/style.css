@@ -686,6 +686,16 @@ a {
   border-color: var(--felt-700);
 }
 
+/* 录入条件未满足时主按钮明确置灰：不用半透明浅绿，避免看起来仍可点。
+   满足校验后 .btn--primary 恢复绿色，disabled 属性由计分台实时切换。 */
+.btn--primary:disabled {
+  background: #e5e7e8;
+  border-color: #e5e7e8;
+  color: #8b9398;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
 .btn--danger {
   color: var(--up);
   border-color: #f0c9c9;
