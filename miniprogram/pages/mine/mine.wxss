@@ -14,15 +14,15 @@
   margin-top: 0;
 }
 
-/* 设置页「关于沟通牌」行右侧的版本+箭头：不用全局 .row-between（其自带
+/* 设置页入口行右侧的「数量/版本 + 箭头」：不用全局 .row-between（其自带
    margin-bottom 会在卡片垂直居中时把内容抬高半格），改用 gap 排布 */
-.about-meta {
+.settings-meta {
   display: flex;
   align-items: center;
   gap: 12rpx;
 }
 
-/* 设置页三个卡片行（关于沟通牌 / 隐私政策 / 登录身份）：卡片默认上下内边距只有
+/* 设置页三行入口（技能 / 关于沟通牌 / 隐私政策）：卡片默认上下内边距只有
    space-sm(16rpx)，单行小字会显得过矮；加高到与列表行 .list-item 一致的 space-md(24rpx) */
 .card.settings-row {
   padding-top: var(--space-md);

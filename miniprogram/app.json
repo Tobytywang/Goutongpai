@@ -6,6 +6,7 @@
     "pages/leaderboard/leaderboard",
     "pages/mine/mine",
     "pages/player/player",
+    "pages/skills/skills",
     "pages/about/about"
   ],
   "window": {

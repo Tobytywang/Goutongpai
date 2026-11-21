@@ -210,9 +210,18 @@
 
   <!-- 设置 -->
   <block wx:if="{{tab==='settings'}}">
+    <!-- 技能字典入口：维护内容独立成页（pages/skills），此处只展示数量 -->
+    <view class="card muted row-between settings-row" hover-class="btn-hover" bindtap="goSkills">
+      <text>技能</text>
+      <view class="settings-meta">
+        <text>{{skills.length}} 个</text>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+
     <view class="card muted row-between settings-row" hover-class="btn-hover" bindtap="goAbout">
       <text>关于沟通牌</text>
-      <view class="about-meta">
+      <view class="settings-meta">
         <text>版本 {{appVersion}}</text>
         <text class="arrow">›</text>
       </view>
@@ -226,3 +235,6 @@
 
   <view class="safe-bottom"></view>
 </view>
+
+<!-- 删除玩家 / 删除赛季等危险操作的二次确认模态框 -->
+<confirm-modal id="confirmModal" />

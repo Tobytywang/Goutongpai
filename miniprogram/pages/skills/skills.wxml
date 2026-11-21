@@ -1,0 +1,55 @@
+<view class="page">
+  <!-- 加载失败 -->
+  <view wx:if="{{error}}" class="card muted">{{error}}</view>
+
+  <!-- 新建技能 -->
+  <view class="card">
+    <view class="row-between card-head">
+      <view class="title">技能（{{skills.length}}）</view>
+      <button class="btn-primary mini skill-head-btn" hover-class="btn-hover" catchtap="toggleForm">{{showForm ? '- 收起' : '+ 新建'}}</button>
+    </view>
+    <view wx:if="{{showForm}}" class="form">
+      <view class="form-row">
+        <text class="form-label form-label--justify">名称</text>
+        <input class="input" placeholder="技能名称（最多8个字）" placeholder-class="placeholder-left" value="{{newName}}" maxlength="8" bindinput="onNewName" />
+      </view>
+      <view class="skill-form-actions">
+        <button class="btn-primary mini skill-form-btn" hover-class="btn-hover" catchtap="submitSkill">保存</button>
+      </view>
+    </view>
+    <view wx:if="{{!skills.length && !showForm}}" class="muted skill-empty">{{loading ? '加载中…' : '还没有技能，点「+ 新建」添加'}}</view>
+  </view>
+
+  <!-- 技能列表 -->
+  <view wx:if="{{skills.length}}" class="card">
+    <view wx:for="{{skills}}" wx:key="id" class="skill-row">
+      <block wx:if="{{item.id !== editingId}}">
+        <view class="skill-row__main">
+          <text class="name">{{item.name}}</text>
+          <text class="muted skill-row__usage">· {{item.usageCount}} 条引用</text>
+        </view>
+        <view class="skill-row__actions">
+          <button class="btn-ghost mini" hover-class="btn-hover" catchtap="openEdit" data-id="{{item.id}}">编辑</button>
+          <button class="btn-danger mini {{item.usageCount > 0 ? 'btn-disabled' : ''}}" disabled="{{item.usageCount > 0}}" hover-class="btn-hover" catchtap="deleteSkill" data-id="{{item.id}}">删除</button>
+        </view>
+      </block>
+      <view wx:else class="form skill-edit" catchtap="noop">
+        <view class="form-row">
+          <text class="form-label form-label--justify">名称</text>
+          <input class="input" placeholder="技能名称（最多8个字）" placeholder-class="placeholder-left" value="{{editName}}" maxlength="8" bindinput="onEditName" />
+        </view>
+        <view class="row-between">
+          <button class="btn-ghost mini" hover-class="btn-hover" catchtap="cancelEdit">取消</button>
+          <button class="btn-primary mini" hover-class="btn-hover" catchtap="submitEdit">保存</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="skill-tip muted">技能赛里每位玩家都要选技能；已被对局引用的技能不能删除，可直接改名，历史记录会自动跟随。</view>
+
+  <view class="safe-bottom"></view>
+</view>
+
+<!-- 删除技能的二次确认模态框 -->
+<confirm-modal id="confirmModal" />

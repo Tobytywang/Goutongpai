@@ -4,6 +4,7 @@ const { uploadPlayerImage, uploadSeasonImage } = require('../../utils/upload');
 const privacy = require('../../utils/privacy');
 const { buildShare, enableShareMenu } = require('../../utils/share');
 const { APP_VERSION } = require('../../utils/releases');
+const { confirmOn } = require('../../utils/confirm');
 
 function maskOpenid() {
   const o = wx.getStorageSync('openid') || '';
@@ -89,6 +90,7 @@ Page({
     editPlayerName: '',
     editPlayerCode: '',
     editPlayerBio: '',
+    skills: [],
     loading: true,
     error: '',
     appVersion: APP_VERSION,
@@ -112,6 +114,7 @@ Page({
       this.setData({
         seasons,
         players,
+        skills: d.skills || [],
         loading: false,
       });
     } catch (e) {
@@ -123,6 +126,17 @@ Page({
     this.setData({ tab: e.currentTarget.dataset.tab });
   },
 
+  // ---- 技能字典已独立成页（pages/skills），此处只保留入口与数量 ----
+  goSkills() {
+    wx.navigateTo({
+      url: '/pages/skills/skills',
+      // 失败兜底：页面未注册等异常时直接提示原因，不静默失败
+      fail: (err) => {
+        console.error('navigateTo skills failed', err);
+        wx.showToast({ title: err.errMsg || '打开失败', icon: 'none' });
+      },
+    });
+  },
 
   togglePlayerForm() {
     const open = !this.data.showPlayerForm;
@@ -360,57 +374,69 @@ Page({
     }
   },
 
-  // 删除玩家：后端在有对局记录时会拦截（与 Web 端规则一致）；前端对有对局的玩家直接置灰禁用 + 防御兜底
+  // 删除玩家：统一走应用内模态框二次确认；有关联对局的玩家前端置灰 + 后端拦截（与 Web 端一致）
   async deletePlayer(e) {
-    const id = e.currentTarget.dataset.id;
+    const id = Number(e.currentTarget.dataset.id);
+    if (this._deleting) return;
     const p = this.data.players.find((x) => x.id === id);
     if (p && p.games > 0) {
       wx.showToast({ title: '该玩家已有对局，无法删除', icon: 'none' });
       return;
     }
-    const ok = await new Promise((resolve) =>
-      wx.showModal({
-        title: '删除玩家',
-        content: p ? `确认删除「${p.name}」？需先删除该玩家的全部关联对局才能移除。` : '确认删除？',
-        confirmText: '删除',
-        confirmColor: '#ee0a24',
-        success: resolve,
-      })
-    );
-    if (!ok.confirm) return;
+    const ok = await confirmOn(this, {
+      title: '删除玩家',
+      content: p ? `确认删除玩家「${p.name}」？` : '确认删除该玩家？',
+      details: [
+        { label: '玩家 ID', value: `#${id}` },
+        { label: '关联对局', value: p && p.games != null ? `${p.games} 局` : '—' },
+      ],
+      warning: '头像与背景图会一并从服务器移除，且不可恢复。已有对局记录的玩家无法删除。',
+      confirmText: '删除',
+      danger: true,
+    });
+    if (!ok) return;
+    this._deleting = true;
     try {
       await del(`/api/players/${id}`);
       wx.showToast({ title: '已删除', icon: 'success' });
       this.loadAll();
     } catch (err) {
       wx.showToast({ title: err.message || '删除失败', icon: 'none' });
+    } finally {
+      this._deleting = false;
     }
   },
 
-  // 删除赛季：后端在有对局记录时会拦截（与 Web 端规则一致）；前端对有关联对局的赛季直接置灰禁用
+  // 删除赛季：统一走应用内模态框二次确认；有关联对局的赛季前端置灰 + 后端拦截
   async deleteSeason(e) {
-    const id = e.currentTarget.dataset.id;
+    const id = Number(e.currentTarget.dataset.id);
+    if (this._deleting) return;
     const s = this.data.seasons.find((x) => x.id === id);
     if (s && s.matchCount > 0) {
       wx.showToast({ title: '该赛季已有对局，无法删除', icon: 'none' });
       return;
     }
-    const ok = await new Promise((resolve) =>
-      wx.showModal({
-        title: '删除赛季',
-        content: s ? `确认删除「${s.name}」？` : '确认删除？',
-        confirmText: '删除',
-        confirmColor: '#ee0a24',
-        success: resolve,
-      })
-    );
-    if (!ok.confirm) return;
+    const ok = await confirmOn(this, {
+      title: '删除赛季',
+      content: s ? `确认删除赛季「${s.name}」？` : '确认删除该赛季？',
+      details: [
+        { label: '关联对局', value: s && s.matchCount != null ? `${s.matchCount} 局` : '—' },
+        { label: '关联玩家', value: s && s.playerCount != null ? `${s.playerCount} 人` : '—' },
+      ],
+      warning: '关联的高光记录会被解绑但保留，操作不可恢复。若只是封存，建议改为「已归档」。',
+      confirmText: '删除',
+      danger: true,
+    });
+    if (!ok) return;
+    this._deleting = true;
     try {
       await del(`/api/seasons/${id}`);
       wx.showToast({ title: '已删除', icon: 'success' });
       this.loadAll();
     } catch (err) {
       wx.showToast({ title: err.message || '删除失败', icon: 'none' });
+    } finally {
+      this._deleting = false;
     }
   },
 

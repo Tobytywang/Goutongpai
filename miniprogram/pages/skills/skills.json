@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "技能",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "confirm-modal": "/components/confirm-modal/confirm-modal"
+  }
+}

@@ -1,0 +1,74 @@
+/* 通用样式见 app.wxss；本页只放技能列表行，与设置页其它卡片保持一致 */
+
+/* 新建 / 收起与「保存」统一固定宽度：
+   1) 「+ 新建」与「- 收起」字宽不同，不定宽会在切换时左右跳动；
+   2) 表单里的按钮默认块级撑满整行，与头部窄按钮不等宽；
+   两处都给同一宽度并右对齐，视觉上落在同一列。
+   加 .mini 前缀是为了压过 app.wxss 里 `.btn-primary.mini` 的 padding 声明。 */
+.mini.skill-head-btn,
+.mini.skill-form-btn {
+  width: 140rpx;
+  padding-left: 0;
+  padding-right: 0;
+}
+.skill-head-btn {
+  flex-shrink: 0;
+  margin-right: 0;
+}
+/* 微信 button 自带 margin-left/right:auto，在 flex 里会自己居中，
+   必须显式清掉右边距才能与头部按钮右边缘对齐 */
+.skill-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.mini.skill-form-btn {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.skill-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-bottom: 1rpx solid var(--color-border);
+}
+.skill-row:last-child {
+  border-bottom: none;
+}
+.skill-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.skill-row__main .name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.skill-row__usage {
+  flex-shrink: 0;
+}
+.skill-row__actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+.skill-edit {
+  width: 100%;
+  margin-top: 0;
+}
+.skill-empty {
+  padding: var(--space-sm) 0;
+}
+.skill-tip {
+  margin-top: var(--space-md);
+  padding: 0 var(--space-xs);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
