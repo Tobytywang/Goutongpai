@@ -1,44 +1,71 @@
-/* 通用样式见 app.wxss；本页只放技能列表行，与设置页其它卡片保持一致 */
+/* 通用样式见 app.wxss；本页只放技能页专属的表单行与编辑展开结构 */
 
-/* 新建 / 收起与「保存」统一固定宽度：
-   1) 「+ 新建」与「- 收起」字宽不同，不定宽会在切换时左右跳动；
-   2) 表单里的按钮默认块级撑满整行，与头部窄按钮不等宽；
-   两处都给同一宽度并右对齐，视觉上落在同一列。
-   加 .mini 前缀是为了压过 app.wxss 里 `.btn-primary.mini` 的 padding 声明。 */
-.mini.skill-head-btn,
-.mini.skill-form-btn {
-  width: 140rpx;
-  padding-left: 0;
-  padding-right: 0;
+/* ========== 新建表单：名称 / 输入框 / 保存同一行 ========== */
+/* 标题→表单 24rpx（--space-md），不再用 .form 默认的 16rpx，拉开主次 */
+.skill-form {
+  margin-top: var(--space-md);
 }
-.skill-head-btn {
-  flex-shrink: 0;
-  margin-right: 0;
+.skill-form__row {
+  margin-bottom: 0;
 }
-/* 微信 button 自带 margin-left/right:auto，在 flex 里会自己居中，
-   必须显式清掉右边距才能与头部按钮右边缘对齐 */
-.skill-form-actions {
-  display: flex;
-  justify-content: flex-end;
+/* 输入框吃掉标签与按钮之外的全部剩余宽度：flex:1 1 0 是唯一写法，
+   flex-basis 必须为 0，否则微信 input 的内容宽度会顶住不让位；
+   同时清掉 .input 默认的 margin-bottom。 */
+.skill-form__input,
+.skill-edit__input {
+  flex: 1 1 0;
+  min-width: 0;
+  margin-bottom: 0;
 }
-.mini.skill-form-btn {
-  margin-left: auto;
-  margin-right: 0;
+/* 按钮槽位：把「固定宽度」放在外层 view 上，button 只负责铺满槽位。
+   教训（截图实测）：直接给微信 <button> 写 width:120rpx + flex:0 0 auto 无效——
+   button 内部的 auto 外边距 + 内容宽度会把槽撑到内容宽（「取消/保存」约 200rpx+），
+   进而把 input 挤成一条竖线、保存按钮溢出卡片。外层槽位用 flex:0 0 固定 basis，
+   既锁死宽度又不会被 button 的默认样式顶开；内层 button 用 display:block + width:100%
+   铺满，并显式清掉 .mini 继承来的左右 padding（否则固定宽度下文字会被挤换行）。 */
+.btn-slot {
+  flex: 0 0 120rpx;
+  min-width: 0;
+}
+/* 新建表单行没有 gap（label 自带 margin-right），单独给按钮槽补左间距；
+   编辑区 .skill-edit__form 有 gap，由它负责，不再重复加 */
+.skill-form__row .btn-slot {
+  margin-left: var(--space-sm);
+}
+.btn-slot button {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
 }
 
+/* 说明文字作为卡片脚注：左右两边与卡片内容区对齐（不缩进），文字铺满整行宽度。
+   分隔线仍横跨整个内容区；脚注靠 border-top + 上间距与表单区分，不靠缩进 */
+.skill-tip {
+  margin-top: var(--space-md);
+  padding: var(--space-md) 0 0;
+  border-top: 1rpx solid var(--color-border);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  text-align: justify;
+}
+
+/* ========== 技能列表：展示行 + 下方缩进展开的编辑区 ========== */
+/* 分割线画在列表项之间，而不是技能行底部：编辑区展开时线仍在整项末尾，不会重复或跳动 */
+.skill-item + .skill-item {
+  border-top: 1rpx solid var(--color-border);
+}
 .skill-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
   padding: var(--space-sm) 0;
-  border-bottom: 1rpx solid var(--color-border);
 }
-.skill-row:last-child {
-  border-bottom: none;
-}
+/* 文字区：必须能占据按钮之外的全部剩余宽度，否则会被按钮挤成 0 宽 */
 .skill-row__main {
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
   display: flex;
   align-items: baseline;
@@ -47,28 +74,45 @@
   white-space: nowrap;
 }
 .skill-row__main .name {
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .skill-row__usage {
-  flex-shrink: 0;
+  flex: 0 0 auto;
 }
+/* 按钮区：微信 <button> 在 flex 容器里默认按块级尺寸撑满，会吃掉整行、
+   把左侧技能名挤成 0 宽并让右按钮溢出卡片。修复写法与 app.wxss 里
+   .season-card__foot button / .card-head button 的既有补丁保持一致。 */
 .skill-row__actions {
   display: flex;
+  align-items: center;
   gap: var(--space-xs);
-  flex-shrink: 0;
+  flex: 0 0 auto;
 }
+.skill-row__actions .mini {
+  min-width: 0;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+/* 编辑展开区：展示行原封不动，在下方缩进展开。
+   仅用左侧竖线 + 缩进标明"从属于这一行"，位置不跳、上下文还在——
+   这是解决"编辑点击后变化突兀"的核心手段（同构于计分台技能行）。
+   不加底色：浅绿块与白色卡片割裂、不和谐；也不加「正在编辑」提示，
+   上方展示行本身就是技能名，重复且占高。 */
 .skill-edit {
-  width: 100%;
-  margin-top: 0;
+  margin: 0 0 var(--space-sm) var(--space-md);
+  padding: var(--space-sm) 0 var(--space-sm) var(--space-md);
+  border-left: 3rpx solid rgba(15, 81, 50, 0.35);
 }
-.skill-empty {
-  padding: var(--space-sm) 0;
+.skill-edit__form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
 }
-.skill-tip {
-  margin-top: var(--space-md);
-  padding: 0 var(--space-xs);
-  font-size: var(--font-size-sm);
-  line-height: 1.6;
-}
+/* 编辑区右侧两个槽位（取消/保存）之间用 gap 分隔，槽位本身仍由 .btn-slot 锁 120rpx */

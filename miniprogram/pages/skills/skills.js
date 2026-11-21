@@ -8,7 +8,6 @@ Page({
     skills: [],
     loading: true,
     error: '',
-    showForm: false,
     newName: '',
     editingId: '',
     editName: '',
@@ -33,16 +32,7 @@ Page({
     }
   },
 
-  // ---- 新建 ----
-  toggleForm() {
-    const open = !this.data.showForm;
-    this.setData({
-      showForm: open,
-      newName: '',
-      editingId: '',
-      editName: '',
-    });
-  },
+  // ---- 新建（表单常驻，无需折叠） ----
   onNewName(e) {
     this.setData({ newName: e.detail.value });
   },
@@ -58,7 +48,7 @@ Page({
     }
     try {
       await post('/api/skills', { name });
-      this.setData({ showForm: false, newName: '' });
+      this.setData({ newName: '' });
       wx.showToast({ title: '已添加', icon: 'success' });
       this.load();
     } catch (e) {
@@ -74,7 +64,6 @@ Page({
     this.setData({
       editingId: id,
       editName: s.name || '',
-      showForm: false,
     });
   },
   onEditName(e) {
