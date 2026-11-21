@@ -1,7 +1,7 @@
 # 沟通牌小程序 UI 设计规范（Design System）
 
 > 适用：微信原生小程序「沟通牌」（`miniprogram/` 目录）
-> 状态：v1.39 · 生效日期 2026-11-09
+> 状态：v1.46 · 生效日期 2026-11-21
 > 定位：所有页面开发、组件封装、UI 走查的**单一事实来源（SSOT）**。
 
 ---
@@ -112,6 +112,19 @@ button::after { border: none; }
 > 按钮最小高度 56rpx；行内 / 紧凑操作用 `.mini`，禁止出现高度各异、颜色两套的按钮。**同一视觉区域内不得堆叠两个深绿主按钮**——页面级主操作（如「保存对局」）用 `.btn-primary`（或 `.btn-primary.submit`），局部补充操作（如阵营内「+ 添加玩家」）用 `.btn-ghost.mini` 降级；卡片内由 `+ 新建 / + 添加` 展开的保存/创建须与触发它的按钮保持同尺寸（mini），避免同一视觉区域内出现高低两套主按钮。
 > 
 > `.mini` 统一覆盖 `min-width: 0 !important`，强制避免微信原生 `button` 默认最小宽度（约 176rpx）把「删除」等短文案按钮撑得过宽；删除按钮统一用 `.btn-danger.mini`，与玩家/赛季/对局列表保持一致。
+>
+> **flex 容器内的 `<button>` 必须显式修复尺寸**：微信原生 `button` 在 flex 容器里会按块级规则撑满可用宽度，仅清 `min-width` 不够，会把同行左侧文字挤成 0 宽、右侧按钮溢出卡片。统一写法（与 `app.wxss` 中 `.season-card__foot button` / `.player-card__foot button` / `.card-head button` 一致）：
+> ```css
+> .xxx-actions button {
+>   min-width: 0;
+>   width: auto;
+>   display: inline-flex;   /* 或 .card-head button 用 display:block */
+>   align-items: center;
+>   justify-content: center;
+>   flex: 0 0 auto;
+> }
+> ```
+> 新增任何「左文字 + 右按钮」行时先套这段，否则会复现技能页「名称被挤没、删除溢出」的事故。
 
 ### 4.3 状态
 - 禁用：`.btn-primary[disabled]` 用 `#b9c9c0` 底白字（保留现行）。
@@ -153,7 +166,8 @@ button::after { border: none; }
 - **表单输入长度限制**：赛季名称最多 **8 个字符**（含中文），输入框 `maxlength="8"`、提交前 JS 校验、后端 `str(..., { max: 8 })` 兜底；玩家昵称维持 6 字符；技能名称最多 **8 个字符**（同赛季口径，后端 `createSkill/updateSkill` 兜底，全局唯一）。
 - **计分页顶部表单（`.sticky-header`）**：赛季行以下固定 **三行**，顺序为「日期」独占一行 →「第几局 + 牌副数」平分一行 →「类型」独占一行。① 独占行用 `.form-row` + `.form-label--justify`（96rpx + `margin-right:24rpx`，与赛季行同款），picker 内距沿用全局默认 16/24rpx，**四条灰框左边缘全部对齐**；**禁止**给独占行挂 `.form-label--inline`——它是 `.form-row--inline` 的后代选择器（`app.wxss`），脱离并排行后会退回 `.form-label` 的 80rpx，重现 v1.15 的「日期框左移」。② 唯一并排行挂 `.form-row--half`，两列 `flex:1 1 0%`（卡片内容 670rpx − `gap` 16rpx → 各 327rpx，picker 实得 207rpx），并单独把 `.picker-value` 内距压到 16rpx、`.picker-text` 右距 8rpx；独占行不受这两条覆盖影响。宽度核算：独占行 picker 550rpx ≫「2026-11-09」所需 218rpx；并排行文字区约 175rpx ≫ 两位数局号与单个牌副数。**不改 `app.wxss` 全局两列规则**，mine / matches 的 50% 行不受影响。`.form-row--date-seq`（1.35:1）随日期独占行取消，`.form-row--date-type` 更早移除。
 - **「第几局」选项文案**：标签已写明「第几局」，picker 的 `range-key="label"` 只给**纯数字** `1 / 2 / 3 …`（`buildSeqOptions` 生成 `label:String(i)`，`value` 仍为数值 `i`，提交取 `value`），**禁止**再拼「第 N 局」造成语义重复；对局卡信息行的「当日第 N 局」是展示态文案，不在此列。
-- **条件技能行 `.player-skill-row`（技能赛专属）**：对局类型为 `skill` 时，在每位玩家的 `.player-row` **下方渲染一个独占整行的兄弟节点**（`<block wx:for>` 包裹玩家行 + 技能行），承载「技能」标签（`.skill-label`，`flex:0 0 80rpx`、次文字色）+ 技能下拉（`.skill-picker{flex:1;min-width:0}`，内部 `.skill-picker-value` 用 `--color-fill` + `--radius-md` + `16rpx 24rpx` 内距 + `.picker-arrow`）。**禁止把技能下拉塞进玩家单行**——录入页 662rpx / 编辑态 622rpx 的单行余量分别只有 22/74rpx，任何 88/140/216rpx 档都会溢出并被 `.page{overflow-x:clip}` 静默裁切；216rpx 玩家 picker、120~240rpx `.score-input`、88rpx `.chip` 的既有硬约束全部保持不变。分割线规则：技能赛时玩家行的 `border-bottom` 交给技能行统一画（`.has-skill .player-row{border-bottom:none}` + `.player-skill-row` 自带 `border-bottom`），同组内不出现双线；普通赛不渲染该行，玩家行零改动。全局定义在 `app.wxss`，编辑态仅以 `.match-edit-form .player-skill-row{gap:var(--space-xs)}` 收紧间距。
+- **条件技能行 `.player-skill-row`（技能赛专属）**：对局类型为 `skill` 时，在每位玩家的 `.player-row` **下方渲染一个独占整行的兄弟节点**（`<block wx:for>` 包裹玩家行 + 技能行），承载「技能」标签（`.skill-label`，v1.46 起 `flex:0 0 216rpx` + `text-align:right`，与上方玩家 picker 共用同一列、「技能」紧贴技能值区形成「标签 → 值」组合，列右边缘与「选择玩家」块右边缘对齐；`--font-size-sm` 次文字色表示从属信息）+ 技能下拉（`.skill-picker{flex:1;min-width:0}`，内部 `.skill-picker-value` 用 `--color-fill` + `--radius-md` + `16rpx 24rpx` 内距 + `.picker-arrow`）。**禁止把技能下拉塞进玩家单行**——录入页 662rpx / 编辑态 622rpx 的单行余量分别只有 22/74rpx，任何 88/140/216rpx 档都会溢出并被 `.page{overflow-x:clip}` 静默裁切；216rpx 玩家 picker、120~240rpx `.score-input`、88rpx `.chip` 的既有硬约束全部保持不变。分割线规则：技能赛时玩家行的 `border-bottom` 交给技能行统一画（`.has-skill .player-row{border-bottom:none}` + `.player-skill-row` 自带 `border-bottom`），同组内不出现双线；普通赛不渲染该行，玩家行零改动。**三态视觉分级（v1.46）**：① 有技能可选 → 灰底 `.skill-picker-value` 选择块（真实控件）；② 技能被其他玩家选完 → `.skill-hint` 纯文字「技能已选完」，次文字色，**禁止套灰底伪输入框**；③ 技能字典为空 → `.skill-add` 次文字灰虚线框「+ 添加技能」，`catchtap="goSkills"`，用虚线区别于真实输入控件、用灰色与「选择技能」未选态同档，避免在深绿主行里跳色。**① 与 ③ 共用 `.skill-picker-value, .skill-add` 尺寸基准**：`flex:1` 撑满值区 + `16rpx 24rpx` 内距 + `--radius-md` + `--font-size-base`，外框严格同宽同高，只有填充与边框语义不同；`.skill-hint` 是文字提示不套框。全局定义在 `app.wxss`，编辑态仅以 `.match-edit-form .player-skill-row{gap:var(--space-xs)}` 收紧间距。
+- **技能唯一性：一人一技能（v1.45）**：技能赛同一局内**每个技能只能被一名玩家选取**，四层防线缺一不可。① 每行技能 picker 的 `range` 不是全量字典，而是该行 `p.availableSkills`（`utils/match-form.js:rebuildAvailableSkills` 按行生成：排除其它行已选技能、保留本行已选以便回显；字典为空时保留历史 skillId 不清值）；无技能可选时用 `wx:elif` 显示 `.skill-hint`「技能已选完」，字典为空才走 `.skill-add`「+ 添加技能」。② `onSkillPick` / `editOnSkillPick` 按行内列表取值，并用 `isSkillTaken` 守卫：过期列表 / 草稿残留选中已占用技能时 toast「技能不能重复选取」并 return，不静默改别人的选择。③ 计分页 `validate` / `submit` 与编辑态 `validateForm` 校验重复与技能数量不足（`需 N 个，现有 M 个`），重复时禁用保存 / toast 拦截；技能字典数量必须 ≥ 已选玩家数。④ 服务端 `lib/api.js:assertUniqueSkills` 在 `createMatch` / `updateMatch` 归一化后拒绝同局重复 `skill_id`，普通赛不受影响（`normalizeSkillId` 一律置空）。**顺序红线**：`buildEditState` 必须先 `withSkillIndex` 再 `rebuildAvailableSkills`——前者写全量字典下标、后者写行内下标，反了会让 picker 的 `value` 错位到别的技能。
 - **危险操作确认模态框 `<confirm-modal>`**：所有删除 / 移除类操作（删除对局、删除玩家、删除赛季、移除阵营）**必须先弹应用内模态框二次确认**，禁止点击即删；禁止直接用 `wx.showModal` 系统弹窗（样式不受 §3 Token 约束、只能放一段纯文本，无法承载可核对的详情）。组件在 `components/confirm-modal/`，页面 `.json` 注册 `usingComponents` 后在 wxml 挂 `<confirm-modal id="confirmModal" />`，JS 统一调 `utils/confirm.js` 的 `confirmOn(this, {...})`（返回 `Promise<boolean>`，仅点确认才为 true）。文案三段式：① `title` 用动词开头（删除本局记录 / 删除玩家 / 移除阵营）；② `content` 点名具体对象；③ `details: [{label, value}]` 列出可核对信息（局号 / 时间 / 比分、玩家 ID / 关联对局数、赛季关联数等）；④ `warning` 说明连带影响与「不可恢复」。按钮：取消用灰底 `.cm-btn--cancel`、确认用 `--color-danger` 红底 + 具体动词（删除本局 / 移除阵营），**默认操作必须是取消**——点遮罩、点取消、页面销毁一律按取消处理。遮罩 `z-index:1000` + `catchtouchmove` 防滚动穿透，样式引用 §3 Token 并带 fallback（组件样式隔离下仍生效）。组件未挂载时 `confirmOn` 自动降级到 `wx.showModal`（`fail` 也按取消），保证「删除必确认」不漏；删除请求期间用页面级 `_deleting` 防重复提交。
 - **计分页阵营卡 `.camp-card`**：与网页端统一，固定 4 套预设（红队 `#d64545` / 蓝队 `#3b7dd8` / 绿队 `#2f9e63` / 紫队 `#b165d4`）。卡片左侧用 8rpx 实色竖条 + 标题前圆点标识阵营色；默认前两个阵营为红/蓝，新增第三、四个依次为绿/紫。阵营名可编辑，但颜色随位置固定（红/蓝/绿/紫不可被用户改色，避免与网页端不一致）。**删除规则**：① 红队(0)/蓝队(1) 固定不可删除；② 第3、第4 阵营颜色固定（绿/紫），不受删除影响；③ **「删除」按钮只出现在最后一个阵营上**，且必须按 第4 → 第3 依次删除（JS `removeCamp` 守卫：长度≤2 拦截、下标≤1 拦截、下标≠最后一个 拦截），保证红/蓝永远保留、且不会出现「删了第3 却留下第4」的乱序。
 
@@ -163,7 +177,7 @@ button::after { border: none; }
 
 ### 7.1 排行榜（ranking）
 强排名语义场景，**禁止**只套 `.list-item` 平铺。
-- **结构**：标题卡 + 榜单卡（`.card` 包裹 `wx:for`）；每行 `.list-item.rank-item`。
+- **结构（v1.44）**：标题卡（`.card.title > .head-row`：左「排行榜」`.title`、右 `.head-season-picker` 赛季选择器）+ 排序卡（`.card.filter-card` 内 `.form-row.sort-row`，排序控件独占整行）+ 榜单卡（`.card` 包裹 `wx:for`）；每行 `.list-item.rank-item`。三个查看页（对局 / 高光 / 排名）标题卡结构完全一致：赛季选择器不再单独占一行、也不再与「排序」并排；排行榜独有的排序下沉到标题卡下方独占一行。
 - **名次徽章 `.rank-no`**：圆形 48rpx，默认灰底次文字；Top3 用奖牌色：
   | 名次 | 类 | 底色 | 字色 |
   |---|---|---|---|
@@ -223,10 +237,13 @@ button::after { border: none; }
 
 - **管理类功能用页内 seg**：「我的」作为管理 hub，内部用 `.seg` 分段导航分为 **玩家 / 赛季 / 设置**，满足"把我的拆成玩家和赛季"的诉求，且不突破 5 个限制。「设置」分段只放**入口行**（`.card.muted.row-between.settings-row`：技能 / 关于沟通牌 / 隐私政策），不承载具体维护表单。
 - **二级管理页走 navigateTo**：字段或列表多到内联卡片放不下的维护功能（技能字典 `pages/skills`），注册到 `app.json` 的 `pages` 但**不入 `tabBar`**，由「我的 → 设置」的入口行 `navigateTo` 进入；页面内自成闭环（新建 / 改名 / 删除 + `<confirm-modal>`），返回时上游页面按需刷新字典，不新增 tab。
+  - **编辑态走「展示行下方缩进展开」**：展示行常驻不动，编辑表单作为其下方兄弟节点缩进展开，**仅用左侧 `3rpx` 主色浅竖线 + 缩进标明从属，不加底色、不加「正在编辑」提示**（v1.43：浅绿底与白卡割裂不和谐；上方展示行本身就是名字，提示重复且占高）；「编辑 / 收起」按钮位置固定（只换文案），不整行替换、不丢上下文（v1.40 建立，同构于计分台技能行）。
+  - **单字段表单按钮收进输入行**：`名称 [输入框] [保存]` 同排，`input{flex:1}`、**按钮必须用固定宽度槽位包裹**（`<view class="btn-slot">{flex:0 0 120rpx}</view>` 内层 button `display:block;width:100%;padding:0;margin:0`）；编辑行的「取消 / 保存」同样收进同一行。间距按「标题→表单 24rpx / 表单内部 16rpx / 表单→脚注 24rpx + 分隔线」分层；脚注左右与卡片内容区对齐、**不缩进**，`text-align:justify` 两端对齐，分隔线横跨整行（v1.40 建立、v1.42 由缩进改为两端对齐）。
+  - **禁止直接给 flex 行内的微信 `<button>` 写固定宽度**：截图实测 `width:120rpx + flex:0 0 auto + display:inline-flex` 会被 button 的默认样式 + `.mini` 的 `padding:0 24rpx` 撑到内容宽（约 200rpx+），把 input 挤成竖条、按钮溢出卡片。统一解法是外层 `.btn-slot` 锁 `flex:0 0 120rpx`、内层 button 铺满槽位（v1.41，与 §4.2「flex 容器内 button 必须显式修尺寸」同源，但固定宽度场景必须用槽位而非 `width:auto`）。
 - **查看类页面走 navigateTo**：玩家资料等详情页注册到 `app.json` 的 `pages`，但**不入 `tabBar`**（微信 tabBar 上限 + 详情页非一级入口）。
 - **例外：已有列表项的轻量编辑走卡片内联展开**（如对局「编辑」按钮），用 `editingId` 控制展示态/表单态切换，不新增页面、不占 tabBar；仅当表单字段多到需要独立页面时才用 `navigateTo`。
 - **新增一级入口的判定**：只有当某功能确实是一级、高频、且现有 5 个 tab 无法容纳时，才考虑**合并现有 tab**（如将「高光」并入「对局」腾出位置），再新增；禁止直接堆到第 6 个。
-- **查看类页面统一赛季上下文**：对局 / 高光 / 排名三个查看页，以及计分页，顶部统一使用 `.form-row` + 赛季 `picker`。
+- **查看类页面统一赛季上下文（v1.44 起）**：对局 / 高光 / 排名三个查看页顶部统一为**标题卡内一行** `.head-row`——左侧页面标题 `.title`（`flex:0 1 auto`，超长省略号），右侧 `.head-season-picker`（`flex:0 1 320rpx`，约占 670rpx 内容区的右半行；`.picker-value` 用 `min-height:56rpx` + `var(--space-xs) var(--space-sm)` 紧凑内距，值 `text-align:right` 贴箭头）。赛季选择器**不再**单独占 `.form-row` 筛选行、也**不再**与「排序」并排，标题卡右侧不再放不可点的 `scopeLabel` 灰字。排行榜独有的「排序」在标题卡下方的 `.card.filter-card` 内**独占一整行**（`.form-row.sort-row`：「排序」标签 + `.picker-right` 通栏，`margin-bottom:0` 避免卡片底部多余留白；筛选卡不带 `wx:if`，排序与赛季无关须常显）。计分页仍沿用 `.form-row` + 赛季 `picker`（录入场景不变）。
   - **查看页（对局 / 高光 / 排名）**：赛季下拉最前固定插入「全部赛季」（id=null，表示不过滤）并作为默认选中项，由 `utils/season.js` 的 `withAllSeason(seasons)` 注入；默认展示全部赛季数据，切换真实赛季即按该季过滤。
   - **计分页**：**不下拉「全部赛季」**（无法把一局录进「全部赛季」）——只列真实赛季，默认选中「当前赛季」（优先 `pinned=1`，否则取首个；判定收敛到 `pickCurrentSeason`）。**录入时必须选定一个具体赛季**，`submit` 守卫 `if (!seasonId)` 拦截空赛季并提示「请先选择赛季」。
   - **赛季当前**：「我的 → 赛季」支持标记 1 个「当前」赛季；后端 `pinSeason` 保证全局有且仅 1 个当前赛季（无「取消」操作，只能被另一个赛季顶替）。所有赛季选择器继承后端 `/api/bootstrap` 的排序 `ORDER BY pinned DESC, status ASC, id DESC`，**当前赛季始终排在真实赛季首位**。
@@ -325,11 +342,11 @@ button::after { border: none; }
 
 **v1.14 技能维护从设置页内联卡片改为独立二级页（本轮）**
 - **需求**：技能列表不再以卡片形式内联在「我的 → 设置」，改为一个**入口按钮行**，点进去才是完整页面。
-- **规范**：§8 的「设置」分段由「承载技能维护卡片」改为「承载技能入口行」——`我的 → 设置` 只保留 `.card.muted.row-between.settings-row`（左「技能」、右「N 个 ›」），点击 `wx.navigateTo` 进入 **`pages/skills/skills`**（二级页，不进 tabBar，5 个 tab 限制不变）。独立页结构：① 顶部 `.card` 放 `+ 新建` 与名称输入；② 列表 `.card` 内每行 `.skill-row`（名称 + `· N 条引用` + 编辑 / 删除）；③ 页尾 `.skill-tip` 说明。`.skill-row / __main / __usage / __actions / -edit / -empty / -tip` 全部随页面迁移到 `pages/skills/skills.wxss`，`mine.wxss` 只保留 `.settings-meta`（原 `.about-meta` 更名，供「技能」「关于沟通牌」两行共用）与 `.card.settings-row`。
+- **规范**：§8 的「设置」分段由「承载技能维护卡片」改为「承载技能入口行」——`我的 → 设置` 只保留 `.card.muted.row-between.settings-row`（左「技能」、右「N 个 ›」），点击 `wx.navigateTo` 进入 **`pages/skills/skills`**（二级页，不进 tabBar，5 个 tab 限制不变）。独立页结构：① 顶部 `.card` 放标题「技能（N）」+ **常驻**的名称输入与「保存」按钮（不设折叠开关，与计分台表单一致）+ 顶部分隔线下的灰字说明；② 列表 `.card` 内每行 `.skill-row`（名称 + `· N 条引用` + 编辑 / 删除）。`.skill-row / __main / __usage / __actions / -edit / -empty / -tip` 全部随页面迁移到 `pages/skills/skills.wxss`，`mine.wxss` 只保留 `.settings-meta`（原 `.about-meta` 更名，供「技能」「关于沟通牌」两行共用）与 `.card.settings-row`。
 - **顺带的空态可达性**：技能字典为空时，计分页与编辑态的 `.skill-picker-empty` 由纯文案「请先到「我的 → 设置」添加技能」改为**可点的「还没有技能，点此添加」**（`catchtap="goSkills"` 直达 `pages/skills`）；编辑态返回时只 `syncSkills()`（`getBootstrap(true)` → `withSkillIndex` → `editSync`），**不重刷列表**，避免未保存的比分被冲掉（`onShow` 里用 `_skillsDirty` 标记分流）。
 - **落地**：新增 `miniprogram/pages/skills/{skills.js,json,wxml,wxss}`；`app.json` 注册页面；`mine.{wxml,js,wxss}` 删掉整套技能 CRUD 与样式（`mine.js` 仅留 `skills` 数量与 `goSkills`）；`scoring.{wxml,js}`、`matches.{wxml,js}` 增加 `goSkills` 与可点空态；`match-form.js` 的 `softWarns` 文案改为「请先添加技能」，`scoring.js` 兜底 toast 改为「请先添加技能（我的 → 设置 → 技能）」；`lib/db.js` / `server.js` 注释、`README.md`、`scripts/smoke.js` 注释同步路径。技能页取数走轻量的 `GET /api/skills`（自带 `usageCount`），不拉整份 bootstrap。
 - **技能行必须看得出是下拉**：`.skill-picker-value` 与 `.input` 原本共用「灰底 + 圆角 + 无边框」，右侧空心 `▾` 仅 24rpx，视觉上等同输入框。改为：① 未选时文案走 `.skill-picker-text--empty`（`--color-text-secondary`），与「已填内容」区分；② 箭头换实心 `▼` 并由 `.skill-picker-caret` 控到 20rpx + `margin-left:16rpx`，形成明确的下拉标志；③ 加 `hover-class="skill-picker-value--hover"`（`opacity:.75`）给出按下反馈。输入框不会在右侧放实心三角，这是最低侵入的区分手段，不新增颜色、不改 `.picker-value` 全局样式。
-- **按钮等宽**：`.mini` 系列按钮宽度由文字撑开，`+ 新建` 与 `- 收起` 因 `+/-` 字宽不同会在切换时跳动，且表单内的按钮默认块级撑满、与头部窄按钮不等宽。技能页给 `.mini.skill-head-btn` / `.mini.skill-form-btn` 统一 `width:140rpx; padding:0`，表单按钮包一层 `.skill-form-actions`（`flex + justify-content:flex-end`）并清掉微信 button 自带的 `margin-right:auto`，使「新建 / 收起」与「保存」落在同一右边缘、两态切换不抖动。
+- **表单常驻**：新建技能表单去掉 `+ 新建 / - 收起` 折叠开关（`showForm` / `toggleForm` 一并移除），名称输入与「保存」始终显示，与计分台表单一致；灰字说明由页尾移入「技能（N）」卡片内，用 `border-top` 与表单分隔。保存按钮包一层 `.skill-form-actions`（`flex + justify-content:flex-end`），固定 `width:140rpx` 并清掉微信 button 自带的 `margin-right:auto`，避免块级撑满整行。
 - **验证**：`node --check` 8 个 JS、`JSON.parse` 3 个 JSON、四个 wxml 的 `view/block` 标签闭合自检、`npm test` 9 例、`npm run smoke` 56 项；残留引用（`toggleSkillForm / showSkillForm / openEditSkill / about-meta / skill-manage`）全仓零命中。
 
 **v1.15 计分页顶部表单四列对齐 + 字段换位（本轮）**
@@ -523,6 +540,56 @@ button::after { border: none; }
 - **代价 / 边界**：380ms 窗口内用户主动滚动会被拉回（很短，且正好是动画期间）；编辑期间用户滚到更下方再收起时，`scrollTop` 会随折叠动画逐帧平滑回位，属内容变矮的必然回位，不是硬跳。
 - **验证**：模拟小程序环境（`Page` / `wx` mock）8 个断言全过——自动拉高钉回、无递归重复滚动、窗口过期解除、切换补偿 `target=400` 且钉住同步、过期序号作废、补偿不足不钉住、收起解除；另有 `node --check`、`npm test` 9/9、`git diff --check`、WXML 标签栈 / WXSS 花括号、调用链静态断言全过。真机需复看：滚到底 → 点最后一张「编辑」展开、再点「收起」，两处按钮都不动。
 - **注**：并行写入继续，本轮开始时规范为 v1.38，故顺延 v1.39；全部按唯一字符串锚定。
+
+**v1.40 技能页视觉整理：编辑态缩进展开 + 按钮收进输入行（本轮）**
+- **需求**（用户原话）：「功能基本可用了，但是界面有点丑（增加界面各元素各归其位但整体丑；列表编辑点击后变化突兀）」，随后确认「按建议方案修改」。
+- **诊断**：配色/字号/圆角本就符合 §3/§5，「丑」来自两处结构问题——单字段表单的「保存」脱离输入行独占第二行（视觉重心散），以及编辑态用整行替换丢掉从属关系（按钮从「编辑/删除」变「取消/保存」、高度跳变）。
+- **落地**（仅 `pages/skills/skills.wxml` / `skills.wxss`，`skills.js` 与数据层/API 零改动）：
+  1. 新建表单改为 `名称 [input flex:1] [保存 120rpx]` 同排，删掉 `.skill-form-actions` 独占行；编辑行「取消/保存」同排收进 `.skill-edit__form`，总高约 88rpx（原 160rpx+）。
+  2. 编辑态改为展示行下方缩进展开：`.skill-item` 包住展示行与 `.skill-edit`，展示行常驻；「编辑」按钮在编辑态原地变「收起」（位置不跳、上下文还在）；编辑区 `margin-left:24rpx + padding-left:24rpx + border-left:3rpx rgba(15,81,50,.35)` + `--color-primary-light` 底，加「正在编辑：{{item.name}}」提示。
+  3. 间距分档：标题→表单 `24rpx`、表单内部 `16rpx`、表单→脚注 `24rpx + border-top`；脚注用 `padding-left:calc(96rpx + var(--space-md))` 对齐输入列，分隔线仍横跨整行。
+  4. 列表分割线改画在 `.skill-item + .skill-item` 的 `border-top`，不再画在 `.skill-row` 底部——编辑区展开时线仍在整项末尾，不会重复或跳动。保留 `.skill-row__main{min-width:0}` / `.skill-row__actions .mini{width:auto;display:inline-flex}` 的防挤压补丁。
+- **规范**：§8「二级管理页走 navigateTo」下新增「编辑态走展示行下方缩进展开」与「单字段表单按钮收进输入行」两条；§7.3 对局「编辑抽屉」经验复用，但技能页字段少、不需要 max-height 动画，故用静态展开。
+- **验证**：WXML 标签栈 0 未闭合 / 0 错配、8 个事件处理函数与 JS `async` 定义全部匹配、7 个 CSS 变量均在 `app.wxss` 定义、`npm test` 9/9、`npm run smoke` 56/56、`git diff --check` 全过。真机需在微信开发者工具复看展开/收起的视觉柔和度。
+
+**v1.41 技能页表单按钮尺寸失控修复（截图反馈）**
+- **问题**（用户截图 + 原话）：「新建部分的按钮的输入框的按钮尺寸有明显问题；编辑栏目下同样存在很多问题」。实测截图：保存按钮被撑到约 200rpx+（远超设定的 120rpx），输入框被挤成竖条，编辑区保存按钮溢出卡片右缘被裁切。
+- **根因**：v1.40 直接给 flex 行内的 `<button class="btn-primary mini">` 写 `width:120rpx; flex:0 0 auto; display:inline-flex`。微信原生 button 的默认样式 + `.mini` 的 `padding:0 24rpx` 会让按钮按内容宽撑开，固定宽度约束失效；button 争到的空间反过来挤压 `flex:1 1 0` 的 input。
+- **修法**：引入固定宽度槽位 `.btn-slot{flex:0 0 120rpx; min-width:0}`，把 3 个按钮（新建保存 / 编辑取消 / 编辑保存）各包一层 `<view class="btn-slot">`；内层 button 改 `display:block; width:100%; min-width:0; padding:0; margin:0` 铺满槽位。槽位是普通 view，flex 布局行为可预测，不受 button 默认样式影响。新建表单行无 gap（label 自带 margin-right），给它的槽位单独补 `margin-left:var(--space-sm)`；编辑区由 `.skill-edit__form` 的 gap 负责间距。
+- **同步**：§8 单字段表单条改写为「必须用固定宽度槽位包裹」，新增一条「禁止直接给 flex 行内 button 写固定宽度」的禁令（与 §4.2 同源但固定宽度场景必须用槽位）。
+- **验证**：WXML 标签栈 0 未闭合 / 错配、8 个事件函数与 JS 全匹配、7 个 CSS 变量全定义、WXSS 花括号配对、3 个按钮槽位全包裹、`btn-slot` 固定 basis 与 input `flex:1 1 0` 断言通过、`npm test` 9/9、`npm run smoke` 56/56、`git diff --check` 全过。真机需复看：两个表单的保存按钮应与「编辑 / 删除」同宽（约 120rpx），输入框占满剩余，无溢出。
+
+**v1.42 技能页脚注说明改为左右两端对齐（截图反馈）**
+- **问题**（用户截图 + 原话）：「我截图的这个内容，要向两边对齐，现在左边空隙太大了」。v1.40 把灰字脚注用 `padding-left:calc(96rpx + var(--space-md))` 缩进到输入列，左侧空出 120rpx，在窄卡片里显得空荡。
+- **修法**：`.skill-tip` 去掉左缩进（`padding:var(--space-md) 0 0`），文字铺满卡片内容区左右边界，并加 `text-align:justify` 两端对齐；分隔线仍横跨整行，靠 `border-top` + 上间距与表单区分，不靠缩进表达从属。
+- **规范**：§8 单字段表单条的脚注描述由「缩进到输入列」改为「左右与卡片内容区对齐、不缩进、两端对齐」。
+- **验证**：WXSS 花括号配对、缩进已移除与 `text-align:justify` 断言通过、`npm test` 9/9、`git diff --check`。真机需复看灰字左右贴齐卡片内容区。
+
+**v1.43 技能页编辑区去掉提示与底色（截图反馈）**
+- **问题**（用户截图 + 原话）：「这里不需要提示：正在编辑，因为上面就是它的名字，为什么它采用了一个不同的底色？这很不和谐」。
+- **修法**：`skills.wxml` 删掉 `<view class="skill-edit__hint">正在编辑：{{item.name}}</view>`；`skills.wxss` 删掉 `.skill-edit__hint` 整条样式、`.skill-edit` 去掉 `background:var(--color-primary-light)` 与 `border-radius`，只保留 `border-left:3rpx` 竖线 + 缩进标明从属。
+- **规范**：§8「编辑态走展示行下方缩进展开」条改为「仅竖线 + 缩进，不加底色、不加正在编辑提示」。
+- **验证**：WXML 标签闭合、渲染节点零 `正在编辑` / 零 `skill-edit__hint`（仅注释保留说明）、底色已移除、竖线保留、WXSS 花括号配对、`npm test` 9/9、`git diff --check`。
+
+**v1.44 查看页头部统一：赛季并入标题卡右半行 + 排行榜排序独占一行（本轮）**
+- **需求**（用户截图 + 原话）：「统一对局，高光，排名的 head 区域的格式……排名多一个排序，单独把排序作为一行，然后把赛季选择直接集成到现在的 header 的右半部分」。
+- **问题**：改前对局 / 高光是「标题卡 + 赛季筛选裸行（`.form-row.head-filters`）」，排名是「标题卡（右侧只是不可点的 `scopeLabel` 灰字）+ 筛选卡（赛季 / 排序两格并排）」——三页头部不同构，且「全部赛季」在两处重复出现。
+- **落地**：① `app.wxss` 用 `.head-row / .head-row > .title / .head-season-picker` 取代已无引用的 `.head-filters`；标题卡内一行左标题、右赛季 picker（`flex:0 1 320rpx`，`.picker-value` 紧凑内距 + `min-height:56rpx` 满足最小可点高度，值右对齐贴箭头）。② `matches.wxml` / `highlights.wxml` 删掉独立赛季筛选行，picker 移入标题卡；`leaderboard.wxml` 同构改造并删掉 `scopeLabel` 灰字。③ 排行榜筛选卡只保留 `.form-row.sort-row`（排序标签 + `.picker-right` 通栏），排序独占整行；`wx:if="{{seasons.length}}"` 从筛选卡移除（排序须常显）。④ `leaderboard.wxss` 删 `.lb-title-row / .filter-row / .filter-cell`，新增 `.sort-row{margin-bottom:0}`；`leaderboard.js` 删 `scopeLabel` 数据与 `recompute()` 中的计算。数据口径（全部赛季默认、按季过滤、排序键）零改动。
+- **规范**：§7.1「结构」条、§8「查看类页面统一赛季上下文」条同步改写；历史 v1.4 记录保留备查（描述的是当时的实现）。
+- **验证**：3 个 WXML 标签栈 0 未闭合 / 0 错配；`app.wxss` 150/150、排行榜 25/25、对局 58/58 花括号配对；三页各 1 个 `.head-row` + 1 个 `.head-season-picker`、仅排行榜多 1 个 `.sort-row`；`.head-filters / .lb-title-row / .filter-row / .filter-cell / scopeLabel` 全仓零残留；`node --check`、`npm test` 9/9、`npm run smoke` 56/56、`git diff --check` 全过。真机需在微信开发者工具复看：三页标题卡左标题 / 右赛季选择器对齐一致、8 字赛季名不折行，排行榜排序控件通栏独占一行。
+- **注**：本轮开始时规范状态为 v1.43（技能页编辑区去底色），顺延 v1.44；全部按唯一字符串锚定，未触碰工作区中并行会话的其它改动。
+
+**v1.45 技能赛一人一技能（截图需求：记分台技能不能重复选取）**
+- **需求**（用户原话）：「记分台中，技能不能重复选取」。改前技能 picker 的 `range` 直接用全量 `skills` / `edit.skills`，同一技能可被多个玩家重复选；服务端 `createMatch` / `updateMatch` 也不校验重复。
+- **落地**：① `utils/match-form.js` 新增 `isSkillTaken` / `rebuildAvailableSkills`（逐行可用技能 + 先到先得消重 + 字典空时保留历史值），`rebuildAvailable(players, camps, skills)` 扩展第三参数；`validateForm` 增加重复与技能不足硬错误，导出 `WARN_SKILL_DUP`。② 计分页 `scoring.wxml/js`：picker 改挂 `p.availableSkills`，`wx:elif` 提示「无可用技能」；`onSkillPick` 按行内列表取值 + 占用守卫 + 一次 setData 重建；`rebuildAvailable()` 同步重建技能下拉；`validate` / `submit` 按「未添加 → 数量不足 → 重复 → 未选」优先级拦截。③ 对局编辑页同口径：`matches.wxml/js` 行内列表、`editOnSkillPick` 守卫、`editSync` 传 `ed.skills` 重建；`buildEditState` 修正 `withSkillIndex` 与 `rebuildAvailableSkills` 的先后（否则行内下标错位）。④ `lib/api.js` 增 `assertUniqueSkills`，create / update 两处调用；普通赛继续强制置空。⑤ `scripts/smoke.js` 技能字典增至 5 个（第 5 个专供删除测试）、技能赛对局改用 4 个不同技能，新增「同一局内技能重复被拒绝」断言。
+- **规范**：§6「条件技能行」后新增「技能唯一性」条，写明四层防线与下标顺序红线。历史 v1.12 技能门控记录保留备查。
+- **验证**：纯函数断言 7/7（逐行排除、本行回显、重复消重、占用守卫、重复/不足校验、正常放行）；服务端断言 5/5（create 拒绝、正常创建、update 拒绝、普通赛放行）；`node --check` 4 个 JS、`npm test` 9/9、`npm run smoke` 57/57、WXML 标签栈平衡且两页均无残留全量字典 picker、`git diff --check` 全过。真机待复看：连选两行不同技能后第一行下拉不再出现已选技能、末行无技能时提示「技能已选完」且保存按钮置灰。
+
+**v1.46 技能行 UI：共享列网格 + 三态视觉分级（截图反馈：「技能」提示突兀）**
+- **需求**（用户原话）：「优化记分台每个玩家的信息录入界面，尤其是『技能』提示有点突兀」。截图显示改前技能行是「80rpx 裸标签 + 通栏灰底长条」，与上方「216rpx 选择玩家块 + 得分块」不同列、比例失衡；空态「还没有技能，点此添加」复用真实选择器的灰底大块，像已填字段而非动作入口。
+- **诊断**：① 列错位——标签 80rpx vs 玩家 picker 216rpx，两行不共用列网格；② 语义错位——空态伪装成输入框；③ 三态同貌——有技能 / 选完 / 无字典都用灰底块，无法区分。
+- **落地**（`app.wxss` + 两页 `.wxml`，JS / 数据层零改动）：① `.skill-label` 改 `flex:0 0 216rpx` + `text-align:right` + `--font-size-sm`，与玩家 picker 共用列、「技能」紧贴技能值区形成「标签 → 值」组合，列右边缘与「选择玩家」块右边缘对齐，值区起点 232rpx 与「得分」框对齐；② 三态拆成独立 class——`.skill-picker-value`（灰底真实控件）/ `.skill-hint`（纯文字「技能已选完」）/ `.skill-add`（与选择框同尺寸的次文字灰虚线框「+ 添加技能」，`catchtap="goSkills"`），删除 `.skill-picker-empty`；③ 计分台与对局编辑页同步改造，保持两处同构。
+- **验证**：两页 WXML 标签栈 0 未闭合 / 0 错配、`wx:if → wx:elif → wx:else` 链条完整；WXSS 花括号 151/151、28/28、58/58；旧类名与旧文案全仓零残留；`npm test` 9/9、`npm run smoke` 57/57、`git diff --check` 全过。真机待复看三态视觉与 216rpx 列对齐。
 
 ---
 
