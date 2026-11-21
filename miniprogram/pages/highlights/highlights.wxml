@@ -1,14 +1,15 @@
 <view class="page">
   <view class="sticky-header">
-    <view class="card title">高光时刻（{{highlights.length}}）</view>
-    <view class="form-row head-filters" wx:if="{{seasons.length}}">
-      <text class="form-label form-label--justify">赛季</text>
-      <picker class="picker-right" range="{{seasons}}" range-key="label" value="{{seasonIndex}}" bindchange="onSeasonChange">
-        <view class="picker-value">
-          <text class="picker-text">{{seasons[seasonIndex].label}}</text>
-          <text class="picker-arrow">▾</text>
-        </view>
-      </picker>
+    <view class="card title">
+      <view class="head-row">
+        <text class="title">高光时刻（{{highlights.length}}）</text>
+        <picker wx:if="{{seasons.length}}" class="head-season-picker" range="{{seasons}}" range-key="label" value="{{seasonIndex}}" bindchange="onSeasonChange">
+          <view class="picker-value">
+            <text class="picker-text">{{seasons[seasonIndex].label}}</text>
+            <text class="picker-arrow">▾</text>
+          </view>
+        </picker>
+      </view>
     </view>
   </view>
   <view wx:for="{{highlights}}" wx:key="id" class="card">

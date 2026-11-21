@@ -1,32 +1,27 @@
 <view class="page">
   <view class="sticky-header">
     <view class="card title">
-      <view class="lb-title-row">
+      <view class="head-row">
         <text class="title">排行榜</text>
-        <text class="muted">{{scopeLabel}}</text>
+        <picker wx:if="{{seasons.length}}" class="head-season-picker" range="{{seasons}}" range-key="label" value="{{seasonIndex}}" bindchange="onSeasonChange">
+          <view class="picker-value">
+            <text class="picker-text">{{seasons[seasonIndex].label}}</text>
+            <text class="picker-arrow">▾</text>
+          </view>
+        </picker>
       </view>
     </view>
 
-    <view class="card filter-card" wx:if="{{seasons.length}}">
-      <view class="filter-row">
-        <view class="form-row filter-cell">
-          <text class="form-label form-label--justify">赛季</text>
-          <picker class="picker-right" range="{{seasons}}" range-key="label" value="{{seasonIndex}}" bindchange="onSeasonChange">
-            <view class="picker-value">
-              <text class="picker-text">{{seasons[seasonIndex].label}}</text>
-              <text class="picker-arrow">▾</text>
-            </view>
-          </picker>
-        </view>
-        <view class="form-row filter-cell">
-          <text class="form-label form-label--justify">排序</text>
-          <picker class="picker-right" range="{{sortLabels}}" value="{{sortIndex}}" bindchange="onSortChange">
-            <view class="picker-value">
-              <text class="picker-text">{{sortLabels[sortIndex]}}</text>
-              <text class="picker-arrow">▾</text>
-            </view>
-          </picker>
-        </view>
+    <!-- 排序独占一行：赛季已并入标题卡右半行，不再与排序并排 -->
+    <view class="card filter-card">
+      <view class="form-row sort-row">
+        <text class="form-label form-label--justify">排序</text>
+        <picker class="picker-right" range="{{sortLabels}}" value="{{sortIndex}}" bindchange="onSortChange">
+          <view class="picker-value">
+            <text class="picker-text">{{sortLabels[sortIndex]}}</text>
+            <text class="picker-arrow">▾</text>
+          </view>
+        </picker>
       </view>
     </view>
   </view>

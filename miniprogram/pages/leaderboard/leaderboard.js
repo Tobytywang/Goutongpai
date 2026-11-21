@@ -35,7 +35,6 @@ Page({
     sortLabels: SORT_KEYS.map((k) => k.label),
     sortLabel: SORT_KEYS[DEFAULT_SORT_INDEX].label,
     activeKey: SORT_KEYS[DEFAULT_SORT_INDEX].key, // 当前排序项对应的统计字段（用于高亮列表项中的同名字段）
-    scopeLabel: '全部赛季',
     podium: [], // 前 3 名
     rankings: [], // 第 4 名及以后
     loading: true,
@@ -178,16 +177,9 @@ Page({
       finishRateText: pct(r.finishRate),
       bestText: String(r.best),
     }));
-    const scopeLabel =
-      this.data.seasonId == null
-        ? '全部赛季'
-        : this.data.seasons[this.data.seasonIndex]
-        ? this.data.seasons[this.data.seasonIndex].label
-        : '全部赛季';
     this.setData({
       sortLabel: meta.label,
       activeKey: meta.key,
-      scopeLabel,
       podium: decorated.slice(0, 3),
       rankings: decorated.slice(3),
     });

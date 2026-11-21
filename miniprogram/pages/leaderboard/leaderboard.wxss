@@ -1,26 +1,12 @@
 /* 排行榜场景样式（基于全局 Token） */
 
-/* 顶部标题行：标题 + 范围说明 */
-.lb-title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-/* 顶部筛选卡片：赛季 + 排序依据 同行 */
+/* 头部：标题卡（标题 + 右侧赛季选择器）复用全局 .head-row / .head-season-picker；
+   本页只保留「排序」独占一行的筛选卡（v1.44 起赛季不再与排序并排） */
 .filter-card {
   margin-bottom: var(--space-md);
 }
-.filter-row {
-  display: flex;
-  gap: var(--space-md);
-}
-/* 复用全局 .form-row / .form-label--justify / .picker-right，仅做横向等分与消除纵向间距 */
-.filter-cell {
-  flex: 1;
-  min-width: 0;
-}
-.filter-cell.form-row {
+/* 卡片内唯一一行的 .form-row：去掉默认下外边距，避免卡片底部多出 16rpx 空白 */
+.sort-row {
   margin-bottom: 0;
 }
 

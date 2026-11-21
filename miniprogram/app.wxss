@@ -638,10 +638,38 @@ button::after {
   align-items: center;
   margin-bottom: var(--space-sm);
 }
-/* 页面级筛选行：与 .card 内容的左右边距对齐（卡片 margin + padding = 16+24） */
-.head-filters {
-  margin: 0 var(--space-sm) var(--space-sm);
-  padding: 0 var(--space-md);
+/* ============ 查看类页面统一头部（对局 / 高光 / 排名，v1.44） ============
+   标题卡内一行 .head-row：左侧页面标题，右侧赛季选择器占右半行。
+   赛季不再单独占一行筛选行，也不再与「排序」并排；排行榜独有的排序
+   在标题卡下方独占一行。三个查看页的头部结构完全一致。 */
+.head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+/* 标题宽度由内容决定，超长时省略号收尾，不把右侧选择器挤出卡片 */
+.head-row > .title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 右半行：670rpx 内容区里约 48%，8 字赛季名 + 箭头仍单行显示 */
+.head-season-picker {
+  flex: 0 1 320rpx;
+  min-width: 0;
+}
+/* 紧凑版值框：与标题同行不撑高卡片，仍满足 56rpx 最小可点高度 */
+.head-season-picker .picker-value {
+  min-height: 56rpx;
+  box-sizing: border-box;
+  padding: var(--space-xs) var(--space-sm);
+}
+/* 值靠右贴近箭头（.picker-right 的右对齐规则不作用于本类） */
+.head-season-picker .picker-text {
+  text-align: right;
 }
 .form-label {
   flex-shrink: 0;
