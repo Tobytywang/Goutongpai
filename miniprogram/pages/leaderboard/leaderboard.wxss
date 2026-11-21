@@ -68,21 +68,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.camp-bar {
-  margin-top: 0;
-  margin-left: auto;
-  width: 120rpx;
-  height: 12rpx;
-  background: var(--color-border);
-  border-radius: 999rpx;
-  overflow: hidden;
-  display: flex;
-  flex-shrink: 0;
-}
-.camp-segment {
-  height: 100%;
-  flex-shrink: 0;
-}
+
 .rank-no {
   width: 48rpx;
   height: 48rpx;
@@ -105,6 +91,8 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  /* 8 列间保留最小间距，长数值不会贴到相邻列 */
+  gap: 6rpx;
 }
 .meta-item {
   display: flex;
@@ -112,27 +100,91 @@
   align-items: center;
   min-width: 0;
 }
-.meta-narrow { flex: 5; }
-.meta-mid { flex: 6; }
-.meta-wide { flex: 8; }
+/* 明确写 flex-basis: 0%，按份数等分整行（避免把 flex: n 当作 basis:auto 时，
+   被「100%」「场均得分」这类长内容撑开，导致右侧列被挤出屏幕）。
+   胜率/出完率最宽是 100%，与三项得分列同为 8 份；出场/胜场/MVP 只有短数字，
+   收窄到 4 份，把宽度让给长内容。
+   列宽固定、不随排序口径变化：若按高亮项动态加权，总份数会变（52/53/55），
+   每份像素宽随之改变，切换排序时 8 列会整体左右漂移（最右列可达 14px）。
+   固定份数后，任一排序口径下各列位置完全一致 */
+.meta-narrow { flex: 4 1 0%; }
+.meta-mid { flex: 8 1 0%; }
+.meta-wide { flex: 8 1 0%; }
 .meta-val {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  text-align: center;
+  /* 8 列所有数值统一抬到 z-index:1（防御约定）：当前高亮列已无背景块，
+     但未来若恢复任何背景装饰，定位背景默认绘制在 static 文字之上，
+     只抬高亮列会重新盖住邻列「4 / 胜场 / 50% / 出完率」（v1.32 真机截图问题）。
+     保持全列抬层即可零成本避免回归。 */
+  position: relative;
+  z-index: 1;
+  /* 固定数值区盒高：普通 24rpx、窄列高亮 34rpx、其余高亮 44rpx 都居中于同一盒子。
+     44rpx 字在 56rpx 行盒里垂直居中且不会被裁切；放大后的「下平面对齐」由
+     .meta-active .meta-val 的 transform 完成，不占布局、不改盒高。
+     .rank-meta 是 align-items:flex-end，容器高度由「最高的那一列」决定；
+     所有列统一用 56rpx（而非按高亮字号变高），任一排序口径下卡片高度都一致，
+     不会在切换排序时于 77/79/81.4px 三档间跳动 */
+  height: 56rpx;
+  line-height: 56rpx;
   font-size: var(--font-size-sm);
   color: var(--color-text);
   font-weight: 500;
-  line-height: 1.2;
   white-space: nowrap;
 }
 .meta-label {
+  display: block;
   margin-top: 4rpx;
+  /* 与 .meta-val 同理：标签也统一抬层，保持 8 列层叠规则一致 */
+  position: relative;
+  z-index: 1;
+  /* 同样固定标签区盒高：中文标签与「MVP」等拉丁字母的默认行高不同，
+     不固定时 MVP 口径的列会比其他列矮 2px */
+  height: 28rpx;
+  line-height: 28rpx;
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
-/* 当前排序项对应的数字：放大并强调，呼应前 3 名领奖台得分的视觉权重 */
+/* ============ 当前排序项：列内数值直接放大（无背景块） ============
+   用户要求：① 8 个数字里那一个本身变大（不另设展示位）；② 放大后的数字与其它数字
+   「下平面对齐」，而不是中线对齐；③ v1.34 起**不使用任何高亮背景色**——
+   不要实心浅底、也不要渐变底，只靠字号 / 字重 / 主色突出（用户「不用这个背景色了」）。
+   ⚠️ 放大必须配套 width:auto / max-width:none：基础 .meta-val 是 width:100% + text-align:center，
+   超宽内容在 WebView 下会整块向右溢出（无头 Chrome 实测 48rpx 的「100%」右溢 17.4px、
+   压到右侧「总得分」数字 4.5px）。改成 width:auto 后由父级 align-items:center 居中、
+   超宽部分左右等量溢出，不压字。移除背景块后数字仍会略微越出列边界，
+   但落在实测余量内，**不得**为此改列宽或加回底色。
+   字号定 2xl(44rpx) 而非 48rpx：8 个排序口径全量实测（375pt / 670rpx 内容区 /
+   8 列 52 份 + 6rpx gap，各列取最坏值：出场 128、胜率/出完率 100%、总得分 1250）——
+   48rpx 时「胜率」列向左溢出会贴上左侧「胜场」窄列 1.4px；44rpx + letter-spacing:-2rpx 后
+   最小余量 3.2px（胜率），其余口径 ≥5.8px，全部不压字。44rpx 比原 34rpx 大 29%，
+   是安全可用的上限。原「34rpx 上限 / 40rpx 会压字」是未做宽度修正前的保守估算，已作废。 */
 .meta-active .meta-val {
-  font-size: var(--font-size-xl);
+  width: auto;
+  max-width: none;
+  font-size: var(--font-size-2xl);
+  letter-spacing: -2rpx;
+  font-weight: 700;
+  color: var(--color-primary);
+  /* 下平面对齐：56rpx 行盒内 44rpx 与 24rpx 都垂直居中时，大数字的可见墨迹底边
+     比小数字低 4.19px（= 8.4rpx，无头 Chrome + canvas 字体度量实测；
+     普通 7 列墨迹底边离散仅 0.21px）。上移 8rpx 后两者底边重合，残差 <0.2px。
+     transform 不占布局：行高 / 列宽 / 盒高 / 相邻列位置全部不变 */
+  transform: translateY(-8rpx);
+}
+.meta-active .meta-label {
   font-weight: 600;
   color: var(--color-primary);
+}
+/* 出场/胜场/MVP 窄列只有 4 份宽，三位数（如出场 128 局）放大到 44rpx 会压到邻列，
+   降一档到 lg(34rpx)；只改字号、不改列宽，因此不会影响各列位置 */
+.meta-narrow.meta-active .meta-val {
+  font-size: var(--font-size-lg);
+  /* 34rpx 相对 24rpx 的墨迹底边差实测 2.10px（= 4.2rpx），上移 4rpx 即对齐 */
+  transform: translateY(-4rpx);
 }
 
 /* 未出场玩家（尚无战绩）：整项灰显，昵称后加「未出场」小标签 */

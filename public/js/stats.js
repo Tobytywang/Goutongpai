@@ -77,7 +77,6 @@ export function computePlayerStats(matches, players, seasonId = null) {
         banked: 0,
         mvp: 0,
         best: 0,
-        campWin: new Map(), // 阵营名 → 出场局数，用于「最常搭档」
         lastPlayed: null,
       });
     }
@@ -98,9 +97,6 @@ export function computePlayerStats(matches, players, seasonId = null) {
       if (entry.is_mvp) s.mvp += 1;
       if (entry.score > s.best) s.best = entry.score;
       if (!s.lastPlayed || m.played_at > s.lastPlayed) s.lastPlayed = m.played_at;
-
-      const campName = entry.camp_name || '未命名阵营';
-      s.campWin.set(campName, (s.campWin.get(campName) || 0) + 1);
     }
   }
 
@@ -109,15 +105,6 @@ export function computePlayerStats(matches, players, seasonId = null) {
     const winRate = s.games ? s.wins / s.games : 0;
     const finishRate = s.games ? s.finishedGames / s.games : 0;
     const avg = s.games ? s.banked / s.games : 0;
-
-    let mainCamp = null;
-    let mainCampCount = 0;
-    for (const [name, count] of s.campWin) {
-      if (count > mainCampCount) {
-        mainCamp = name;
-        mainCampCount = count;
-      }
-    }
 
     return {
       player,
@@ -133,7 +120,6 @@ export function computePlayerStats(matches, players, seasonId = null) {
       winRate,
       finishRate,
       avg,
-      mainCamp,
       lastPlayed: s.lastPlayed,
     };
   });

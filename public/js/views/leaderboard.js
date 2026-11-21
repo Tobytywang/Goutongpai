@@ -223,7 +223,6 @@ function buildTable(rows, sortMeta) {
     { key: 'avg', label: '场均得分', cls: 'num', title: '总得分 ÷ 出场' },
     { key: 'best', label: '最高得分', cls: 'num', title: '单局拿到的最高得分' },
     { key: 'mvp', label: '★MVP', cls: 'num', title: '被标记为 MVP 的次数' },
-    { key: 'mainCamp', label: '常驻阵营', cls: '', title: '出场次数最多的阵营' },
   ];
 
   const head = h(
@@ -265,8 +264,7 @@ function buildTable(rows, sortMeta) {
         h('td', { class: 'num text-up', style: { fontWeight: '620' } }, String(r.banked)),
         h('td', { class: 'num' }, r.games ? r.avg.toFixed(1) : '—'),
         h('td', { class: 'num' }, String(r.best)),
-        h('td', { class: 'num' }, r.mvp ? h('span', { class: 'badge badge--mvp' }, String(r.mvp)) : h('span', { class: 'muted' }, '—')),
-        h('td', {}, r.mainCamp ? h('span', { class: 'badge' }, r.mainCamp) : h('span', { class: 'muted' }, '—'))
+        h('td', { class: 'num' }, r.mvp ? h('span', { class: 'badge badge--mvp' }, String(r.mvp)) : h('span', { class: 'muted' }, '—'))
       )
     );
   });

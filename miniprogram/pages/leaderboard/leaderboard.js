@@ -75,11 +75,8 @@ Page({
     players.forEach((p) => (nameMap[p.id] = p.name));
     const scoped = seasonId == null ? matches : matches.filter((m) => m.season_id === seasonId);
     const map = {};
-    const campColorMap = {};
     scoped.forEach((m) =>
       (m.camps || []).forEach((c) => {
-        const campName = c.name || '未命名阵营';
-        if (c.color) campColorMap[campName] = c.color;
         (c.players || []).forEach((s) => {
           const pid = s.player_id;
           if (!map[pid]) {
@@ -92,7 +89,6 @@ Page({
               banked: 0,
               mvp: 0,
               best: 0,
-              campWin: {},
             };
           }
           const r = map[pid];
@@ -105,7 +101,6 @@ Page({
           if (s.is_mvp) r.mvp += 1;
           const sc = Number(s.score) || 0;
           if (sc > r.best) r.best = sc;
-          r.campWin[campName] = (r.campWin[campName] || 0) + 1;
         });
       })
     );
@@ -121,44 +116,29 @@ Page({
           banked: 0,
           mvp: 0,
           best: 0,
-          campWin: {},
         };
       }
     });
     // 不再按出场数过滤；games===0 的标记 noRecord，排序时沉底
     return Object.values(map).map((r) => {
-        const winRate = r.games ? r.wins / r.games : 0;
-        const finishRate = r.games ? r.finishedGames / r.games : 0;
-        const avg = r.games ? r.banked / r.games : 0;
-        const entries = Object.entries(r.campWin)
-          .map(([camp, count]) => ({
-            camp,
-            count,
-            pct: Math.round((count / r.games) * 100),
-            color: campColorMap[camp] || '#999999',
-          }))
-          .sort((a, b) => b.count - a.count);
-        // 四舍五入后修正总和为 100，避免进度条总长出现缺口/溢出
-        if (entries.length) {
-          const diff = 100 - entries.reduce((sum, e) => sum + e.pct, 0);
-          if (diff) entries[0].pct += diff;
-        }
-        return {
-          id: r.id,
-          name: r.name,
-          games: r.games,
-          wins: r.wins,
-          finishedGames: r.finishedGames,
-          banked: r.banked,
-          mvp: r.mvp,
-          best: r.best,
-          winRate,
-          finishRate,
-          avg,
-          campShares: entries,
-          noRecord: r.games === 0,
-        };
-      });
+      const winRate = r.games ? r.wins / r.games : 0;
+      const finishRate = r.games ? r.finishedGames / r.games : 0;
+      const avg = r.games ? r.banked / r.games : 0;
+      return {
+        id: r.id,
+        name: r.name,
+        games: r.games,
+        wins: r.wins,
+        finishedGames: r.finishedGames,
+        banked: r.banked,
+        mvp: r.mvp,
+        best: r.best,
+        winRate,
+        finishRate,
+        avg,
+        noRecord: r.games === 0,
+      };
+    });
   },
 
   // 与 Web 端 sortStats 同口径：主排序键降序，同值再按 胜局→出场→总得分 兜底
