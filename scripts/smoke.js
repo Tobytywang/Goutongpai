@@ -139,13 +139,13 @@ async function main() {
 
     /* ------------------------------------------------ 技能字典（我的 → 设置 → 技能） */
     console.log('\n技能字典（我的 → 设置 → 技能）');
-    const skillNames = ['记牌', '算牌', '心理战', '备用'];
+    const skillNames = ['记牌', '算牌', '心理战', '备用', '闲置'];
     const skills = [];
     for (const n of skillNames) {
       skills.push(await must('POST', '/api/skills', { name: n }));
     }
     check('创建 4 个技能并返回引用数', () => {
-      assert.strictEqual(skills.length, 4);
+      assert.strictEqual(skills.length, 5);
       assert.deepStrictEqual(skills.map((s) => s.name), skillNames);
       assert.ok(skills.every((s) => s.usageCount === 0));
       assert.ok(skills.every((s) => s.id > 0));
@@ -165,7 +165,7 @@ async function main() {
 
     const skillList = await must('GET', '/api/skills');
     check('GET /api/skills 返回全量列表与引用数', () => {
-      assert.strictEqual(skillList.length, 4);
+      assert.strictEqual(skillList.length, 5);
       assert.ok(skillList.every((s) => typeof s.usageCount === 'number'));
       assert.strictEqual(skillList.find((s) => s.id === skills[1].id).name, '读牌');
     });
@@ -242,7 +242,7 @@ async function main() {
           name: '蓝队',
           players: [
             { player_id: players[2].id, score: 10, finished: true, skill_id: skills[2].id },
-            { player_id: players[3].id, score: 0, finished: true, skill_id: skills[0].id },
+            { player_id: players[3].id, score: 0, finished: true, skill_id: skills[3].id },
           ],
         },
       ],
@@ -254,9 +254,26 @@ async function main() {
       assert.ok(all.every((p) => p.skill_id != null && p.skill_name));
       assert.strictEqual(all.find((p) => p.player_id === players[1].id).skill_name, '读牌');
     });
+    const dupSkillMatchErr = await mustFail('POST', '/api/matches', {
+      season_id: season.id,
+      deck_count: 2,
+      played_at: '2026-09-29 21:35:00',
+      type: 'skill',
+      camps: [
+        { name: '红队', players: [
+          { player_id: players[0].id, score: 60, finished: true, skill_id: skills[0].id },
+          { player_id: players[1].id, score: 40, finished: true, skill_id: skills[0].id },
+        ] },
+        { name: '蓝队', players: [
+          { player_id: players[2].id, score: 10, finished: true, skill_id: skills[2].id },
+          { player_id: players[3].id, score: 0, finished: true, skill_id: skills[3].id },
+        ] },
+      ],
+    });
+    check('同一局内技能重复被拒绝', () => assert.match(dupSkillMatchErr, /技能不能重复选取/));
     const refSkillErr = await mustFail('DELETE', `/api/skills/${skills[0].id}`);
     check('被对局引用的技能禁止删除', () => assert.match(refSkillErr, /条对局记录引用/));
-    const unusedDel = await must('DELETE', `/api/skills/${skills[3].id}`);
+    const unusedDel = await must('DELETE', `/api/skills/${skills[4].id}`);
     check('未被任何对局引用的技能可以删除', () => assert.strictEqual(unusedDel.deleted, true));
     check('正好 100 分（正好一半）不算获胜', () => {
       const r = tieMatch.camps.find((c) => c.name === '红队');
@@ -456,7 +473,7 @@ async function main() {
           id: blue.id,
           players: [
             { player_id: players[2].id, score: 25, finished: true, is_mvp: true, skill_id: skills[2].id },
-            { player_id: players[1].id, score: 15, finished: false, is_mvp: false, skill_id: skills[0].id },
+            { player_id: players[1].id, score: 15, finished: false, is_mvp: false, skill_id: skills[3].id },
           ],
         },
       ],
@@ -473,14 +490,14 @@ async function main() {
     check('GET /api/matches/:id 回填对局类型与玩家技能（供编辑态 picker 还原）', () => {
       assert.strictEqual(skillRoundTrip.type, 'skill');
       const p = skillRoundTrip.camps.flatMap((c) => c.players).find((x) => x.player_id === players[1].id);
-      assert.strictEqual(p.skill_id, skills[0].id);
-      assert.strictEqual(p.skill_name, '记牌');
+      assert.strictEqual(p.skill_id, skills[3].id);
+      assert.strictEqual(p.skill_name, '备用');
     });
 
     const bootSkills = await must('GET', '/api/bootstrap');
     check('bootstrap 下发 skills（含引用数）与 matches.type / 玩家 skill_id', () => {
-      assert.strictEqual(bootSkills.skills.length, 3);
-      assert.ok(bootSkills.skills.some((s) => s.id === skills[0].id && s.usageCount >= 3));
+      assert.strictEqual(bootSkills.skills.length, 4);
+      assert.ok(bootSkills.skills.some((s) => s.id === skills[0].id && s.usageCount >= 2));
       const m = bootSkills.matches.find((x) => x.id === match.id);
       assert.strictEqual(m.type, 'skill');
       assert.ok(m.camps.flatMap((c) => c.players).every((p) => p.skill_id != null && p.skill_name));
@@ -519,7 +536,7 @@ async function main() {
       assert.strictEqual(boot.players.length, 4);
       assert.strictEqual(boot.matches.length, 2);
       assert.strictEqual(boot.highlights.length, 1);
-      assert.strictEqual(boot.skills.length, 3); // 「备用」已删，其余 3 个仍被技能赛引用
+      assert.strictEqual(boot.skills.length, 4); // 「闲置」已删，其余 4 个仍被技能赛引用
       assert.strictEqual(boot.matches.find((m) => m.id === tieMatch.id).type, 'skill');
       assert.strictEqual(boot.matches.find((m) => m.id === match.id).type, 'normal');
     });
