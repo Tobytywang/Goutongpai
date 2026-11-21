@@ -68,6 +68,9 @@ function clearSkills(camps) {
   }));
 }
 
+// 两页共用同一句提示，避免计分页 / 编辑页出现两种说法
+const WARN_SKILL_DUP = '技能不能重复选取';
+
 // 生成某行可用的玩家列表：排除其他所有位置已选中的玩家，但保留本行当前已选的玩家
 function buildAvailableForRow(players, camps, ci, pi) {
   const excluded = new Set();
@@ -80,15 +83,53 @@ function buildAvailableForRow(players, camps, ci, pi) {
   return (players || []).filter((p) => !excluded.has(p.id));
 }
 
+/** 某技能是否已被其他玩家行占用（选择时的守卫，防 picker 列表过期 / 草稿残留绕过过滤） */
+function isSkillTaken(camps, skillId, ci, pi) {
+  if (skillId == null) return false;
+  return camps.some((c, cIdx) => c.players.some((p, pIdx) =>
+    !(cIdx === ci && pIdx === pi) && p.skillId === skillId
+  ));
+}
+
+/**
+ * 重建每行的「可用技能」下拉与 picker 下标：同一局内技能先到先得，不重复。
+ * · 其它行已占用的技能不出现在下拉里，本行已选的技能保留以便回显；
+ * · 旧草稿 / 外部数据带来的重复选择按行顺序消重：后出现的那一行清空技能，交由用户重选；
+ * · 技能字典为空时保留历史 skillId / skillName（同 withSkillIndex），只把下拉置空——
+ *   否则打开一条历史技能赛会把技能字段误清掉。
+ */
+function rebuildAvailableSkills(skills, camps) {
+  const list = skills || [];
+  const seen = new Set();
+  return (camps || []).map((c) => Object.assign({}, c, {
+    players: c.players.map((p) => {
+      if (!list.length) return Object.assign({}, p, { availableSkills: [] });
+      const valid = p.skillId != null && list.some((s) => s.id === p.skillId);
+      const duplicate = valid && seen.has(p.skillId);
+      if (valid && !duplicate) seen.add(p.skillId);
+      const skillId = valid && !duplicate ? p.skillId : null;
+      // seen 已含本行技能，故本行已选项仍留在下拉里（picker 的 value 才不会越界）
+      const availableSkills = list.filter((s) => !seen.has(s.id) || s.id === skillId);
+      const skillIdx = skillId != null ? availableSkills.findIndex((s) => s.id === skillId) : -1;
+      const skillName = skillId != null
+        ? (list.find((s) => s.id === skillId) || {}).name || p.skillName || ''
+        : '';
+      return Object.assign({}, p, { skillId, skillIdx, skillName, availableSkills });
+    }),
+  }));
+}
+
 // 重建每个玩家行的「可用玩家」下拉（含新玩家），不改动其它字段
-function rebuildAvailable(players, camps) {
-  return camps.map((c, ci) => Object.assign({}, c, {
+// 传了 skills 时顺带重建技能下拉；不传则保持旧行为（纯玩家列表）
+function rebuildAvailable(players, camps, skills) {
+  const withPlayers = camps.map((c, ci) => Object.assign({}, c, {
     players: c.players.map((p, pi) => {
       const available = buildAvailableForRow(players, camps, ci, pi);
       const availIdx = p.playerId != null ? available.findIndex((pl) => pl.id === p.playerId) : -1;
       return Object.assign({}, p, { available, availIdx });
     }),
   }));
+  return skills === undefined ? withPlayers : rebuildAvailableSkills(skills, withPlayers);
 }
 
 /**
@@ -216,6 +257,8 @@ function validateForm(camps, deckCount, type, skills) {
     constraintWarns.push('请先添加技能');
   }
   const allIds = [];
+  const chosenSkillIds = [];
+  let skillPlayerCount = 0;
   let recordedTotal = 0;
 
   camps.forEach((c, i) => {
@@ -229,11 +272,23 @@ function validateForm(camps, deckCount, type, skills) {
       recordedTotal += v;
       if (v > deckTotal) hard.add(`单名玩家分数 ${v} 超过牌库总分 ${deckTotal}`);
       // 技能赛每位已选玩家都必须选技能（普通赛完全跳过）
-      if (type === 'skill' && p.skillId == null) hard.add('技能赛需为每位玩家选择技能');
+      if (type === 'skill') {
+        skillPlayerCount += 1;
+        if (p.skillId == null) hard.add('技能赛需为每位玩家选择技能');
+        else chosenSkillIds.push(p.skillId);
+      }
     });
   });
 
   if (new Set(allIds).size !== allIds.length) hard.add('存在重复玩家，请检查各阵营');
+  if (type === 'skill') {
+    // 一人一技能 ⇒ 字典数量至少要覆盖已选玩家数，否则末位玩家永远无从选择
+    const skillCount = (skills || []).length;
+    if (skillCount > 0 && skillCount < skillPlayerCount) {
+      hard.add(`技能数量不足（需 ${skillPlayerCount} 个，现有 ${skillCount} 个）`);
+    }
+    if (new Set(chosenSkillIds).size !== chosenSkillIds.length) hard.add(WARN_SKILL_DUP);
+  }
   if (recordedTotal > deckTotal) hard.add(`录入总分 ${recordedTotal} 超过牌库总分 ${deckTotal}`);
 
   // 「牌副数 ≥4」「总人数 ≥6」不在此校验：编辑态改不了，纳入会让历史对局永久无法保存
@@ -292,10 +347,10 @@ function buildEditState(m, players, skills) {
     };
   });
 
-  // 锁定标记依赖阵营数（camps.length），必须在小计之前按当前结构重算
-  camps = calcCampSubtotals(applyPlayerLocks(rebuildAvailable(players, camps)));
-  // 按当前技能字典回填 picker 下标；字典为空时保留历史 skillId/skillName，避免误清
+  // 先按当前技能字典清理失效 skillId，再重建逐行的可用技能下拉：
+  // 顺序不能反——withSkillIndex 写的是全量字典下标，rebuildAvailableSkills 写的才是行内下标
   camps = withSkillIndex(camps, skillList);
+  camps = calcCampSubtotals(applyPlayerLocks(rebuildAvailable(players, camps, skillList)));
   const deckCount = Number(m.deck_count) || 1;
   const type = m.type === 'skill' ? 'skill' : 'normal';
   const edit = {
@@ -346,12 +401,15 @@ function buildPayload(edit) {
 module.exports = {
   CAMP_PRESETS,
   MATCH_TYPES,
+  WARN_SKILL_DUP,
   uid,
   emptyPlayer,
   withSkillIndex,
   clearSkills,
   buildAvailableForRow,
+  isSkillTaken,
   rebuildAvailable,
+  rebuildAvailableSkills,
   applyPlayerLocks,
   calcCampSubtotals,
   roundTo5,

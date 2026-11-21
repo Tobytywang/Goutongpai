@@ -4,6 +4,7 @@ const score = require('../../utils/score');
 const { pickCurrentSeason, withSeasonLabels } = require('../../utils/season');
 const { buildShare, enableShareMenu } = require('../../utils/share');
 const { confirmOn } = require('../../utils/confirm');
+const matchForm = require('../../utils/match-form');
 
 // 与网页端计分台保持一致：红 / 蓝 / 绿 / 紫
 const CAMP_PRESETS = [
@@ -35,7 +36,7 @@ function emptyPlayer() {
     score: '', finished: false, mvp: false, locked: false,
     available: [], availIdx: -1,
     // 技能只对「技能赛」有意义：skillId 对应 skills.id，skillIdx/name 供 picker 回显
-    skillId: null, skillIdx: -1, skillName: '',
+    skillId: null, skillIdx: -1, skillName: '', availableSkills: [],
   };
 }
 
@@ -380,6 +381,7 @@ Page({
             skillId: p.skillId ?? null,
             skillName: p.skillName || '',
             skillIdx: -1,
+            availableSkills: [],
             // locked 不读草稿里的旧值，统一按当前阵营数 + 行号重算
             locked: false,
             available: [],
@@ -489,23 +491,31 @@ Page({
       return;
     }
     this.setData({ matchType: next, typeIndex });
-    // 技能赛有「每位玩家必填」校验，切换后立即刷新保存按钮状态
-    this.setCamps(this.data.camps.slice());
+    // 切换后立即刷新校验：技能赛有「每位玩家必填」校验；
+    // 同时重建技能下拉（普通赛期间清空了选择，原本被占用的技能重新可用）
+    this.rebuildAvailable();
   },
 
   onSkillPick(e) {
     const ci = Number(e.currentTarget.dataset.camp);
     const pi = Number(e.currentTarget.dataset.pi);
     const idx = Number(e.detail.value);
-    const s = this.data.skills[idx];
+    const row = this.data.camps[ci].players[pi];
+    // picker 只列未被占用的技能；这里按行内列表取值，过期列表 / 草稿残留再守一道
+    const s = (row.availableSkills || [])[idx];
     if (!s) return;
+    if (matchForm.isSkillTaken(this.data.camps, s.id, ci, pi)) {
+      wx.showToast({ title: matchForm.WARN_SKILL_DUP, icon: 'none' });
+      return;
+    }
     const camps = this.data.camps.slice();
     camps[ci].players[pi] = Object.assign({}, camps[ci].players[pi], {
       skillId: s.id,
       skillIdx: idx,
       skillName: s.name,
     });
-    this.setCamps(camps);
+    // 一次 setData 完成「写入选择 + 重建其它行的可用技能」，避免重复选择残留
+    this.setCamps(matchForm.rebuildAvailableSkills(this.data.skills, camps));
   },
 
   // 技能字典为空时的入口：跳到独立的技能维护页，回来自动按 onShow 刷新字典
@@ -647,10 +657,11 @@ Page({
     this.computePreview();
   },
 
-  // 重新计算每个玩家行的「可用玩家」下拉列表：已占用的玩家不出现在其他行的下拉里
+  // 重新计算每个玩家行的「可用玩家」与「可用技能」下拉：
+  // 已被其它行占用的玩家 / 技能都不出现在该行下拉里，本行已选项保留以便回显
   rebuildAvailable() {
-    const { players, camps } = this.data;
-    const nextCamps = camps.map((c, ci) => {
+    const { players, skills, camps } = this.data;
+    const withPlayers = camps.map((c, ci) => {
       const playersArr = c.players.map((p, pi) => {
         const available = buildAvailableForRow(players, camps, ci, pi);
         let availIdx = -1;
@@ -661,7 +672,7 @@ Page({
       });
       return Object.assign({}, c, { players: playersArr });
     });
-    this.setCamps(nextCamps);
+    this.setCamps(matchForm.rebuildAvailableSkills(skills, withPlayers));
   },
   onScore(e) {
     const { camp, pi } = e.currentTarget.dataset;
@@ -731,12 +742,17 @@ Page({
     // 提示挤在一行显示：先说缺多少人才够开局（最直观），再说局部问题
     if (totalPlayers < minTotal) warns.push(`还需 ${minTotal - totalPlayers} 名玩家`);
     if (camps.some((c) => c.players.filter((p) => p.playerId).length < per)) warns.push('阵营人数不足');
-    // 技能赛：技能字典必须存在，且每位已选玩家都要选技能（普通赛完全跳过）
+    // 技能赛：一人一技能 ⇒ 字典数量够用 → 不重复 → 每人都有（普通赛完全跳过）
     if (matchType === 'skill') {
+      const skillPlayers = camps.reduce((n, c) => n + c.players.filter((p) => p.playerId).length, 0);
+      const chosenSkillIds = [];
+      camps.forEach((c) => c.players.forEach((p) => {
+        if (p.playerId && p.skillId != null) chosenSkillIds.push(p.skillId);
+      }));
       if (!skills.length) warns.push('未添加技能');
-      if (camps.some((c) => c.players.some((p) => p.playerId && p.skillId == null))) {
-        warns.push('有人未选技能');
-      }
+      else if (skills.length < skillPlayers) warns.push(`技能数量不足（需 ${skillPlayers} 个，现有 ${skills.length} 个）`);
+      else if (new Set(chosenSkillIds).size !== chosenSkillIds.length) warns.push(matchForm.WARN_SKILL_DUP);
+      else if (chosenSkillIds.length < skillPlayers) warns.push('有人未选技能');
     }
     // 基础校验（人数/阵营/技能）只取第一条，与两条录入约束一起展示在表单上方，
     // 否则出现「约束都满足了、按钮还是灰的，界面却没有任何说明」的情况
@@ -820,13 +836,22 @@ Page({
       wx.showToast({ title: ruleWarns[0], icon: 'none' });
       return;
     }
-    // 兜底：技能赛必须每人选技能，防止绕过实时校验
+    // 兜底：技能赛技能齐全且一人一个，防止草稿等异常数据绕过实时校验
     if (matchType === 'skill') {
       if (!skills.length) {
         wx.showToast({ title: '请先添加技能（我的 → 设置 → 技能）', icon: 'none' });
         return;
       }
-      if (payloadCamps.some((c) => c.players.some((p) => p.skill_id == null))) {
+      const chosen = payloadCamps.reduce((all, c) => all.concat(c.players.map((p) => p.skill_id)), []);
+      if (skills.length < totalPlayers) {
+        wx.showToast({ title: `技能数量不足（需 ${totalPlayers} 个，现有 ${skills.length} 个）`, icon: 'none' });
+        return;
+      }
+      if (new Set(chosen.filter((id) => id != null)).size !== chosen.filter((id) => id != null).length) {
+        wx.showToast({ title: matchForm.WARN_SKILL_DUP, icon: 'none' });
+        return;
+      }
+      if (chosen.some((id) => id == null)) {
         wx.showToast({ title: '技能赛需为每位玩家选择技能', icon: 'none' });
         return;
       }

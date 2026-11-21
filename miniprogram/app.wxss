@@ -990,25 +990,36 @@ input.score-input {
 .has-skill .player-row {
   border-bottom: none;
 }
+/* 技能标签与上方玩家 picker 共用 216rpx 列（v1.46）：右对齐让「技能」紧贴技能值区，
+   与值形成紧凑的「标签 → 值」组合，列右边缘也与上方「选择玩家」块右边缘对齐。
+   值区起点 216+16=232rpx 与「得分」框对齐，两行仍是同一套列网格。
+   标签降为 sm 号次文字色，表明技能是玩家的从属信息，不与主行争夺视觉重量。 */
 .skill-label {
-  flex: 0 0 80rpx;
-  font-size: var(--font-size-base);
+  flex: 0 0 216rpx;
+  text-align: right;
+  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
 .skill-picker {
   flex: 1;
   min-width: 0;
 }
-.skill-picker-value {
+/* 技能值区两种「框」共用同一套尺寸基准：同宽（撑满值区）、同高（16rpx 上下内距）、
+   同圆角、同字号，保证「添加技能」与「选择技能」外框严格一致，只有填充与边框语义不同。 */
+.skill-picker-value,
+.skill-add {
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+}
+/* 有技能可选：真实选择控件，灰底 */
+.skill-picker-value {
   justify-content: space-between;
   background: var(--color-fill);
-  border-radius: var(--radius-md);
-  padding: var(--space-sm) var(--space-md);
-  font-size: var(--font-size-base);
   color: var(--color-text);
   overflow: hidden;
 }
@@ -1033,9 +1044,17 @@ input.score-input {
 .skill-picker-value--hover {
   opacity: 0.75;
 }
-.skill-picker-empty {
-  color: var(--color-text-secondary);
+/* 技能已被其他玩家选完：信息提示用纯文字，不再套灰底伪输入框 */
+.skill-hint {
   font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 72rpx;
+}
+/* 技能字典为空：动作入口，次文字灰虚线框 + 透明底，尺寸与选择框一致；
+   灰框灰字与「选择技能」未选态同档视觉重量，避免深绿在主行里跳色 */
+.skill-add {
+  border: 1rpx dashed var(--color-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 /* 赛季行：复用玩家行的左右布局，左侧名称+状态，右侧置顶/删除操作 */

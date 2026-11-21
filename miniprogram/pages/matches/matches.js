@@ -370,7 +370,7 @@ Page({
     // 锁定标记按「当前阵营数 + 行号」重算：增删玩家会让后续行前移，必须每次刷新，
     // 否则删掉第 4 行后第 4 行（原第 5 行）仍带着可删状态
     ed.camps = matchForm.calcCampSubtotals(
-      matchForm.applyPlayerLocks(matchForm.rebuildAvailable(this.data.players || [], camps))
+      matchForm.applyPlayerLocks(matchForm.rebuildAvailable(this.data.players || [], camps, ed.skills))
     );
     ed.result = matchForm.computePreview(ed.camps, ed.deckCount);
     const v = matchForm.validateForm(ed.camps, ed.deckCount, ed.type, ed.skills);
@@ -418,14 +418,21 @@ Page({
     const ci = Number(e.currentTarget.dataset.camp);
     const pi = Number(e.currentTarget.dataset.pi);
     const idx = Number(e.detail.value);
-    const s = (ed.skills || [])[idx];
+    const row = ed.camps[ci].players[pi];
+    // 与计分页同一口径：下拉只列未被占用的技能，选中时再守一道防过期列表
+    const s = (row.availableSkills || [])[idx];
     if (!s) return;
+    if (matchForm.isSkillTaken(ed.camps, s.id, ci, pi)) {
+      wx.showToast({ title: matchForm.WARN_SKILL_DUP, icon: 'none' });
+      return;
+    }
     const camps = ed.camps.slice();
     const players = camps[ci].players.slice();
     players[pi] = Object.assign({}, players[pi], {
       skillId: s.id, skillIdx: idx, skillName: s.name,
     });
     camps[ci] = Object.assign({}, camps[ci], { players });
+    // editSync 会重建所有行的可用技能，刚选中的技能立即从其它行下拉消失
     this.editSync(camps);
   },
 

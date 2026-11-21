@@ -90,16 +90,17 @@
           <view wx:else class="del" bindtap="removePlayer" data-camp="{{ci}}" data-pi="{{pi}}">✕</view>
         </view>
       </view>
-      <!-- 只有技能赛才显示技能行：独占整行，不挤压已饱和的单行布局 -->
+      <!-- 只有技能赛才显示技能行：标签与玩家 picker 共用 216rpx 列，值区与得分框对齐 -->
       <view wx:if="{{matchType === 'skill'}}" class="player-skill-row">
         <text class="skill-label">技能</text>
-        <picker wx:if="{{skills.length}}" class="skill-picker" range="{{skills}}" range-key="name" value="{{p.skillIdx}}" bindchange="onSkillPick" data-camp="{{ci}}" data-pi="{{pi}}">
+        <picker wx:if="{{skills.length && p.availableSkills.length}}" class="skill-picker" range="{{p.availableSkills}}" range-key="name" value="{{p.skillIdx}}" bindchange="onSkillPick" data-camp="{{ci}}" data-pi="{{pi}}">
           <view class="skill-picker-value" hover-class="skill-picker-value--hover">
             <text class="skill-picker-text {{p.skillName ? '' : 'skill-picker-text--empty'}}">{{p.skillName || '选择技能'}}</text>
             <text class="picker-arrow skill-picker-caret">▼</text>
           </view>
         </picker>
-        <view wx:else class="skill-picker-value skill-picker-empty" catchtap="goSkills">还没有技能，点此添加</view>
+        <text wx:elif="{{skills.length}}" class="skill-hint">技能已选完</text>
+        <view wx:else class="skill-add" catchtap="goSkills">+ 添加技能</view>
       </view>
     </block>
 

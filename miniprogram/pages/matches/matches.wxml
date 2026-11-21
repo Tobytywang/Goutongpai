@@ -141,13 +141,14 @@
               <!-- 仅技能赛显示：技能下拉独占第二行，不与玩家行抢横向空间 -->
               <view wx:if="{{edit.type === 'skill'}}" class="player-skill-row">
                 <text class="skill-label">技能</text>
-                <picker wx:if="{{edit.skills.length}}" class="skill-picker" range="{{edit.skills}}" range-key="name" value="{{p.skillIdx}}" bindchange="editOnSkillPick" data-camp="{{ci}}" data-pi="{{pi}}">
+                <picker wx:if="{{edit.skills.length && p.availableSkills.length}}" class="skill-picker" range="{{p.availableSkills}}" range-key="name" value="{{p.skillIdx}}" bindchange="editOnSkillPick" data-camp="{{ci}}" data-pi="{{pi}}">
                   <view class="skill-picker-value" hover-class="skill-picker-value--hover">
                     <text class="skill-picker-text {{p.skillName ? '' : 'skill-picker-text--empty'}}">{{p.skillName || '选择技能'}}</text>
                     <text class="picker-arrow skill-picker-caret">▼</text>
                   </view>
                 </picker>
-                <view wx:else class="skill-picker-value skill-picker-empty" catchtap="goSkills">还没有技能，点此添加</view>
+                <text wx:elif="{{edit.skills.length}}" class="skill-hint">技能已选完</text>
+                <view wx:else class="skill-add" catchtap="goSkills">+ 添加技能</view>
               </view>
             </block>
             <button wx:if="{{c.players.length < 5}}" class="btn-ghost mini add-player" hover-class="btn-hover" catchtap="editAddPlayer" data-camp="{{ci}}">+ 添加玩家</button>
