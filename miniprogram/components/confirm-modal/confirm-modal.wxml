@@ -1,0 +1,25 @@
+<!-- 危险操作二次确认：应用内统一模态框（替代 wx.showModal 系统弹窗） -->
+<view wx:if="{{visible}}" class="cm-mask" catchtap="onCancel" catchtouchmove="noop">
+  <view class="cm-dialog" catchtap="noop">
+    <view class="cm-head">
+      <view class="cm-icon {{danger ? 'cm-icon--danger' : 'cm-icon--primary'}}">{{danger ? '!' : 'i'}}</view>
+      <text class="cm-title">{{title}}</text>
+    </view>
+
+    <view class="cm-body">
+      <view class="cm-content">{{content}}</view>
+      <view wx:if="{{details.length}}" class="cm-details">
+        <view wx:for="{{details}}" wx:key="label" class="cm-detail">
+          <text class="cm-detail__label">{{item.label}}</text>
+          <text class="cm-detail__value">{{item.value}}</text>
+        </view>
+      </view>
+      <view wx:if="{{warning}}" class="cm-warning">{{warning}}</view>
+    </view>
+
+    <view class="cm-foot">
+      <button class="cm-btn cm-btn--cancel" hover-class="cm-btn--hover" catchtap="onCancel">{{cancelText}}</button>
+      <button class="cm-btn {{danger ? 'cm-btn--danger' : 'cm-btn--primary'}}" hover-class="cm-btn--hover" catchtap="onConfirm">{{confirmText}}</button>
+    </view>
+  </view>
+</view>

@@ -2,6 +2,7 @@
 const { get, del, BASE, getBootstrap } = require('../../utils/request');
 const { uploadPlayerImage } = require('../../utils/upload');
 const { buildShare, enableShareMenu } = require('../../utils/share');
+const { confirmOn } = require('../../utils/confirm');
 
 function withMedia(p) {
   return Object.assign({}, p, {
@@ -50,26 +51,31 @@ Page({
     }
   },
 
-  // 删除玩家：后端在有对局记录时会拦截（与 Web 端规则一致）
+  // 删除玩家：统一走应用内模态框二次确认；后端在有对局记录时仍会拦截（与 Web 端一致）
   async deletePlayer() {
     const p = this.data.player;
-    if (!p) return;
-    const ok = await new Promise((resolve) =>
-      wx.showModal({
-        title: '删除玩家',
-        content: `确认删除「${p.name}」？该玩家若已有对局记录则无法删除。`,
-        confirmText: '删除',
-        confirmColor: '#ee0a24',
-        success: resolve,
-      })
-    );
-    if (!ok.confirm) return;
+    if (!p || this._deleting) return;
+    const ok = await confirmOn(this, {
+      title: '删除玩家',
+      content: `确认删除玩家「${p.name}」？`,
+      details: [
+        { label: '玩家 ID', value: `#${p.id}` },
+        { label: '玩家签名', value: p.style || '—' },
+      ],
+      warning: '头像与背景图会一并从服务器移除，且不可恢复。已有对局记录的玩家无法删除。',
+      confirmText: '删除',
+      danger: true,
+    });
+    if (!ok) return;
+    this._deleting = true;
     try {
       await del(`/api/players/${p.id}`);
       wx.showToast({ title: '已删除', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 600);
     } catch (err) {
       wx.showToast({ title: err.message || '删除失败', icon: 'none' });
+    } finally {
+      this._deleting = false;
     }
   },
 

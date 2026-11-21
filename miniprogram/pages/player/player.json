@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "玩家资料"
+  "navigationBarTitleText": "玩家资料",
+  "usingComponents": {
+    "confirm-modal": "/components/confirm-modal/confirm-modal"
+  }
 }

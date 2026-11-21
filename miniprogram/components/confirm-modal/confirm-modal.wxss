@@ -1,0 +1,143 @@
+/* 二次确认模态框：样式自带 + 引用 app.wxss 设计 Token（带 fallback，组件样式隔离下也可用） */
+.cm-mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl, 48rpx);
+  background: rgba(0, 0, 0, 0.45);
+  animation: cm-fade 0.16s ease-out;
+}
+
+.cm-dialog {
+  width: 100%;
+  max-width: 600rpx;
+  overflow: hidden;
+  background: var(--color-card, #ffffff);
+  border-radius: var(--radius-lg, 16rpx);
+  color: var(--color-text, #323233);
+  font-size: var(--font-size-base, 28rpx);
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.12);
+  animation: cm-pop 0.16s ease-out;
+}
+
+.cm-head {
+  display: flex;
+  align-items: center;
+  padding: var(--space-lg, 32rpx) var(--space-lg, 32rpx) var(--space-sm, 16rpx);
+}
+
+.cm-icon {
+  width: 44rpx;
+  height: 44rpx;
+  margin-right: var(--space-sm, 16rpx);
+  flex: 0 0 44rpx;
+  border-radius: var(--radius-round, 999rpx);
+  color: #fff;
+  font-size: var(--font-size-base, 28rpx);
+  font-weight: 600;
+  line-height: 44rpx;
+  text-align: center;
+}
+.cm-icon--danger { background: var(--color-danger, #ee0a24); }
+.cm-icon--primary { background: var(--color-primary, #0f5132); }
+
+.cm-title {
+  flex: 1;
+  font-size: var(--font-size-lg, 34rpx);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.cm-body { padding: 0 var(--space-lg, 32rpx); }
+
+.cm-content {
+  font-size: var(--font-size-base, 28rpx);
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+.cm-details {
+  margin-top: var(--space-md, 24rpx);
+  padding: var(--space-xs, 8rpx) var(--space-sm, 16rpx);
+  background: var(--color-fill, #f5f5f5);
+  border-radius: var(--radius-md, 12rpx);
+}
+.cm-detail {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--space-xs, 8rpx) 0;
+}
+.cm-detail__label {
+  flex: 0 0 auto;
+  margin-right: var(--space-sm, 16rpx);
+  color: var(--color-text-secondary, #969799);
+  font-size: var(--font-size-sm, 24rpx);
+  line-height: 1.6;
+}
+.cm-detail__value {
+  flex: 1;
+  text-align: right;
+  font-size: var(--font-size-sm, 24rpx);
+  font-weight: 500;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+.cm-warning {
+  margin-top: var(--space-md, 24rpx);
+  padding: var(--space-sm, 16rpx);
+  background: #fff2f2;
+  border-radius: var(--radius-md, 12rpx);
+  color: var(--color-danger, #ee0a24);
+  font-size: var(--font-size-sm, 24rpx);
+  line-height: 1.6;
+}
+
+.cm-foot {
+  display: flex;
+  gap: var(--space-sm, 16rpx);
+  padding: var(--space-md, 24rpx) var(--space-lg, 32rpx) var(--space-lg, 32rpx);
+}
+.cm-btn {
+  flex: 1;
+  height: 72rpx;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  border: none;
+  border-radius: var(--radius-md, 12rpx);
+  font-size: var(--font-size-base, 28rpx);
+  font-weight: 500;
+  line-height: 72rpx;
+  text-align: center;
+}
+.cm-btn::after { border: none; }
+.cm-btn--hover { opacity: 0.85; }
+.cm-btn--cancel {
+  background: var(--color-fill, #f5f5f5);
+  color: var(--color-text, #323233);
+}
+.cm-btn--danger {
+  background: var(--color-danger, #ee0a24);
+  color: #fff;
+}
+.cm-btn--primary {
+  background: var(--color-primary, #0f5132);
+  color: #fff;
+}
+
+@keyframes cm-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes cm-pop {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}

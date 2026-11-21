@@ -47,3 +47,6 @@
   <view wx:elif="{{loading}}" class="empty">加载中…</view>
   <view wx:else class="empty">未找到该玩家</view>
 </view>
+
+<!-- 删除玩家的二次确认模态框 -->
+<confirm-modal id="confirmModal" />
