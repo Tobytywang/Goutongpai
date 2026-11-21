@@ -99,12 +99,38 @@
   line-height: 1;
 }
 
-/* 对局页：卡片头部（局号 + 日期 + 当日第N局 + 副数，左信息 + 右上删除按钮） */
+/* ---------------------------------------------------------------- MVP 玩家：金色主题（覆盖阵营色）
+   展示态 p.is_mvp 为真时，整颗胶囊不再用 c.color（红/蓝/绿/紫）。金色沿用
+   --color-medal-gold(#F0B429) 与编辑态 .chip.mvp.active(#ff9c00/#fff7e6) 的色系，
+   与「获胜队」🏆（在 .camp-line 阵营行）区分：本局 MVP 只用胶囊内的金色识别，
+   不加任何角标；奖杯在阵营行、金色在玩家行，层级不同不会混淆。
+   注意：姓名半格的非 MVP 背景是 WXML 内联 style，优先级高于 WXSS 类；
+   MVP 分支已在 WXML 里不输出内联背景，这里才能用 background 渐变整体接管。
+   渐变浅金段用深棕字（白字在 #F0B429 上对比度不足 2:1，不可读）。 */
+.player-score.is-mvp {
+  border-color: #a86a08;
+  box-shadow: 0 0 0 2rpx rgba(240, 180, 41, 0.35);
+}
+.player-name-half.is-mvp {
+  background: linear-gradient(135deg, #ffe9a8 0%, #f0b429 55%, #d18f13 100%);
+  color: #4a2e00;
+  font-weight: 600;
+  text-shadow: 0 1rpx 0 rgba(255, 255, 255, 0.45);
+}
+.player-score.is-mvp .player-score-half {
+  background: #fff8e6;
+  color: #7a4b00;
+}
+/* 技能赛：MVP 胶囊中间的技能半格同步转浅金，避免一整颗胶囊里夹一段灰底 */
+.player-score.is-mvp .player-skill-half {
+  background: #fff3d1;
+  color: #7a4b00;
+}
+
+/* 对局页：卡片头部只保留信息行（局号 + 日期 + 当日第N局 + 副数 + 技能赛标记），
+   独占整行 670rpx 内容宽；操作栏已移至卡片最底部 .match-actions（页脚，见下）。
+   信息行不与按钮抢横向空间，4 位局号 / 两位局次 / 10 副 / 长日期均不会把「N副」挤到第二行。 */
 .match-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--space-sm);
   margin-bottom: var(--space-sm);
 }
 .match-header-left {
@@ -112,18 +138,110 @@
   flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
   min-width: 0;
   overflow: hidden;
 }
-/* 提高选择器优先级并强制按钮宽度自适应内容，避免微信 button 默认占满整行 */
-.match-header .btn-danger.mini.match-del {
+/* 卡片页脚：只挂常驻操作栏，分割线只由本层提供一次。
+   编辑态不再往页脚里插预览行——那会把按钮往下推；预览 / 保存与编辑表单
+   改挂在页脚之后的 .match-edit-drawer 里，展开与收起时按钮位置全程不变。 */
+.match-footer {
+  margin-top: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 1rpx solid var(--color-border);
+}
+/* 编辑抽屉：挂在 .match-footer 之后，是 .card 的最后一个子节点（仅编辑态存在）。
+   上方信息行 / 展示态比分块 / 分割线 / 操作按钮都不在抽屉里，高度变化不影响它们。
+   max-height 由 JS 测量 .match-edit-drawer__inner 后以内联 px 给出，
+   不写死固定大值——否则折叠动画前半段（大值降到实际高度）完全看不出变化。
+   opacity + translateY 给出方向感：展开向下长出来，收起向按钮方向向上收回。 */
+.match-edit-drawer {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 280ms ease, opacity 200ms ease;
+}
+.match-edit-drawer.is-open {
+  opacity: 1;
+}
+.match-edit-drawer__inner {
+  transform: translateY(-8rpx);
+  transition: transform 280ms ease;
+}
+.match-edit-drawer.is-open .match-edit-drawer__inner {
+  transform: translateY(0);
+}
+/* 本局预览行：左侧单行文案 + 右侧标准主按钮。
+   位置：抽屉内容的**最后一项**（v1.36 前在表单上方，用户要求「保存还是要放在最后」）。
+   因此上下间距改写为「上方分隔」：margin-top + padding-top + border-top 复用卡片内
+   每次「动作区」起头的分割线语言（与 .match-footer 一致）；margin-bottom 归零，
+   底部留白交给 .card 自身的 16rpx padding。
+   文案与计分页同为 `.muted` 灰字（不额外强调数字，保持两页一致）；
+   强制 nowrap：它只占一行，不会把按钮（纵向不再 stretch）顶高，
+   超窄屏才省略号截断，不会折成两行。 */
+.footer-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 1rpx solid var(--color-border);
+}
+.footer-preview-text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 保存按钮：不带 .mini，沿用 .btn-primary 的 72rpx 标准高度；
+   width:auto 必须显式写——微信 button 默认块级整行宽，在 flex 行里会挤扁左侧文案 */
+.match-save {
+  flex-shrink: 0;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0 var(--space-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+/* 未通过校验时禁用：配色必须与计分页底部预览卡的保存按钮完全一致
+   （scoring.wxss `.preview-card .btn-primary[disabled]`：实色 #e5e5e5 底 + #666 深灰字，
+   不用 opacity，否则文字几乎看不见）。
+   注意选择器写法：只写 `.match-save[disabled]`（1 类 + 1 属性）会被微信 button 组件的
+   内置 `button[disabled]` 系列样式压过，真机渲染成 WeUI 的 #fafafa 底 + #969799 字，
+   与计分页明显不同。这里用「祖先类 + 元素 + 类 + 属性」提到 (0,3,1) 才稳压内置样式；
+   预览行随抽屉移出页脚后祖先类改为 .match-edit-drawer，特异性仍是 (0,3,1)；
+   去掉祖先类或 button 元素名都会退回原生灰，属于回归。 */
+.match-edit-drawer button.match-save[disabled] {
+  background: #e5e5e5;
+  color: #666666;
+  opacity: 1;
+}
+/* 卡片底部操作栏（页脚）：编辑/收起（次级） + 删除（危险），靠右分组。
+   分割线与上间距由 .match-footer 统一负责，这里只排按钮；
+   外层 .card 已有左右 24rpx padding，这里不再加左右 padding，否则按钮组会
+   相对上方 .camp-block 右缩进 24rpx。 */
+.match-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+/* 保留 width:auto / inline-flex 修正微信 button 默认占满整行；
+   尺寸不覆盖，统一继承全局 .mini（56rpx / 24rpx / 0 24rpx）。
+   选择器前缀必须是 .match-actions：搬移后按钮不再是 .match-header 后代，
+   沿用旧前缀会整块失效、按钮被微信 button 默认 min-width 撑宽。 */
+.match-actions .btn-danger.mini.match-del,
+.match-actions .btn-ghost.mini.match-edit {
   flex-shrink: 0;
   margin: 0;
-  height: 48rpx;
-  line-height: 48rpx;
-  padding: 0 16rpx;
-  font-size: 22rpx;
   width: auto;
   display: inline-flex;
   align-items: center;
@@ -148,4 +266,166 @@
 /* 对局页：列表卡片底部留白更小，减少白色空白 */
 .page > .card:not(.title) {
   padding-bottom: var(--space-sm);
+}
+
+/* ---------------------------------------------------------------- 卡片内联编辑（仅比分相关）
+   以下表单类与 pages/scoring/scoring.wxss 同源；它们是页面级样式，
+   不会从计分页自动继承，故在此复制一份。收敛时可上移到 app.wxss。 */
+.camp-head {
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+.match-edit-form .camp-head {
+  justify-content: space-between; /* 覆盖 .season-edit .row-between 的 flex-end */
+}
+.camp-head-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.camp-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  margin-right: 12rpx;
+  flex-shrink: 0;
+}
+.camp-subtotal {
+  margin-left: var(--space-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.camp-card {
+  border-left: 8rpx solid transparent;
+}
+.camp-color-red { --camp-color: #d64545; border-left-color: var(--camp-color); }
+.camp-color-blue { --camp-color: #3b7dd8; border-left-color: var(--camp-color); }
+.camp-color-green { --camp-color: #2f9e63; border-left-color: var(--camp-color); }
+.camp-color-purple { --camp-color: #b165d4; border-left-color: var(--camp-color); }
+.camp-full-tip {
+  text-align: center;
+  padding: 12rpx 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+/* 不合规提示：与计分页同一范式（scoring.wxss:119-125）——⚠️ + 单行合并文案。
+   刻意不抄计分页的 white-space:nowrap：编辑态文案会带上阵营名 / 分数，
+   比计分页的固定短句长得多，强行不换行会溢出卡片，这里允许折行。 */
+.rule-warns { margin-top: 6rpx; }
+.rule-warns .warn {
+  margin-top: 0;
+  line-height: 1.5;
+  word-break: break-word;
+}
+/* —— 已撤销：原「本局预览卡」(.preview-card / .preview-info) 已并入 .match-footer
+   的 .footer-preview 行。此处不再保留 .card 形态，避免对局卡内部出现二级卡片。 */
+
+/* 编辑态专属：只读说明 */
+/* 只读说明（v1.33 起单行）：一句「正在编辑 #N 局 · 日期/局次/牌副数/赛季等不可修改」。
+   左边界跟随 .season-edit 的 24rpx padding 落在 64rpx，与下方「赛季 / 牌副数 / 类型」
+   标签同一条竖线（用户要求向赛季对齐，故 v1.31 的负 margin 只保留给 .rule-warns）。
+   文案里的斜杠两侧不留空格：留空格实测会顶到 622rpx 内容边界，在「修改」两字中间折行。 */
+.edit-lock-tip {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--space-sm);
+}
+
+/* 编辑态「不合规提示」左对齐基准：卡片内容盒左边界 40rpx。
+   .match-edit-form 继承 .season-edit 的左右 padding:24rpx，默认落在 64rpx，
+   与卡片头部「#N」（40rpx）、阵营卡左边框（40rpx）错开一条竖线
+   （用户截图实测：`#13` 起于 x≈32px、⚠️ 起于 x≈47px）。
+   它描述的是整局是否成立，与卡头信息同级，故拉回基准线。
+   表单字段（赛季 / 牌副数 / 获胜线 / 类型）与阵营卡内文保持 64rpx 不动——它们属于
+   「标签 + 控件」结构，左边界本就该与阵营卡内容对齐；只读说明同样保持 64rpx（见上条）。
+   用子选择器限定为 .match-edit-form 的直接子节点，避免波及嵌套层级。 */
+.match-edit-form > .rule-warns {
+  margin-left: calc(-1 * var(--space-md));
+}
+
+.match-edit-form .form-field .picker-value {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------------- 内联编辑表单：横向基准修正
+   编辑表单 .season-edit 嵌在外层对局卡内并自带左右 var(--space-md) padding，
+   阵营卡又是一层 .card，二次叠加 margin+padding 使内容区从 622rpx
+   缩到 534rpx 且整体右移 48rpx；玩家行约 640rpx 单行溢出，被 .page 裁掉，✕ 贴边。
+   （预览行挂在表单之外——v1.34 起在表单下方的 .footer-preview，不再受这条负 margin 影响。）
+   以下规则一律带 .match-edit-form 前缀，只作用于「对局」页编辑态：
+   scoring / mine 无此祖先，展示态 camp-block 也不在表单内，均不受影响。 */
+
+/* 1) 抵消 .season-edit 左右 padding，让阵营卡边框盒回到 40..710。
+      用 calc(-1 * var(--space-md)) 与 app.wxss:485 共用同一 token，日后改 token 自动联动；
+      只写 left/right 长属性，保留 .card 上下 24rpx 间距；
+      padding-left 16 + 左边框 8 = 24，与右侧 padding 24 对称，内容区精确到 64..686。
+      注意：若调整 .season-edit 的左右 padding，此处必须同步修改。 */
+.match-edit-form .card {
+  margin-left: calc(-1 * var(--space-md));
+  margin-right: calc(-1 * var(--space-md));
+  padding-left: var(--space-sm);
+}
+
+/* 2) 压缩玩家行固定宽度，让 3 组控件在 622rpx 内容区内完整放下。
+      刻意不动 .chip / .del 尺寸（点击区域不缩水）、不动 margin-left:auto、
+      不动 .score-input 的 flex:1 与 max-width:240rpx，避免行宽反弹。 */
+.match-edit-form .player-row,
+.match-edit-form .player-actions {
+  gap: var(--space-xs);
+}
+.match-edit-form .player-row picker {
+  flex: 0 0 180rpx;
+}
+.match-edit-form .player-row .score-input {
+  min-width: 96rpx;
+}
+/* 每队最小玩家数内不可删的行：保留 ✕ 的横向位置，只隐藏符号（同 scoring.wxss:112-114）。
+   不用 display:none —— 那会让该行右侧塌掉一格宽，玩家行之间的 ✕ 列不再对齐。 */
+.match-edit-form .del--placeholder {
+  visibility: hidden;
+}
+
+/* 3) 技能行是玩家行的兄弟节点、独占整行，只收紧 gap；
+      沿用全局 .player-skill-row 的尺寸与分割线，不触碰上面 180/96rpx 的横向基准修正。 */
+.match-edit-form .player-skill-row {
+  gap: var(--space-xs);
+}
+
+/* 4) 表单底部不再自带 24rpx 内边距：表单在抽屉里，后面紧跟 .footer-preview（v1.34 起），
+      抽屉高度按内容实测，多一层 padding-bottom 会在分割线上方留下无用空白。
+      v1.26 的原由是消除 .season-edit 与 .match-footer 的间距叠加；抽屉化后两者
+      不再相邻（页脚在表单上方），但归零仍然成立，也是实测高度准确的前提。
+      仅编辑态生效：展示态的 .camp-block 不在 .match-edit-form 内，不受影响。 */
+.match-edit-form {
+  padding-bottom: 0;
+}
+
+/* 展示态：技能赛标记与玩家胶囊中的技能名 */
+.match-type-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2rpx 10rpx;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+.player-skill-half {
+  display: flex;
+  align-items: center;
+  padding: 6rpx 12rpx 10rpx;
+  background: var(--color-fill);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1;
+  max-width: 160rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

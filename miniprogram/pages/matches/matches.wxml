@@ -11,7 +11,7 @@
       </picker>
     </view>
   </view>
-  <view wx:for="{{matches}}" wx:key="id" class="card">
+  <view wx:for="{{matches}}" wx:key="id" class="card" id="match-{{item.id}}">
     <view class="match-header">
       <view class="match-header-left">
         <text class="match-id-tag">#{{item.id}}</text>
@@ -20,25 +20,146 @@
         <text class="name">当日第{{item.daily_index}}局</text>
         <text class="sep">·</text>
         <text class="name">{{item.deck_count}}副</text>
+        <text wx:if="{{item.type === 'skill'}}" class="match-type-tag">技能赛</text>
       </view>
-      <button class="btn-danger mini match-del" hover-class="btn-hover" catchtap="deleteMatch" data-id="{{item.id}}">删除本局</button>
     </view>
-    <view wx:for="{{item.camps}}" wx:for-item="c" wx:key="id" class="camp-block {{c.is_winner ? 'winner' : 'loser'}}">
-      <image wx:if="{{c.is_winner}}" class="camp-bg" src="/assets/bg-win.png" mode="aspectFill"/>
-      <image wx:else class="camp-bg" src="/assets/bg-lose.png" mode="aspectFill"/>
-      <view class="camp-line">
-        <view class="camp-line-left">
-          <view class="camp-name-text">
-            <view class="camp-color-mark" style="background-color: {{c.color}};"></view>
-            <text>{{c.name}}：{{c.total_score}} 分</text>
+
+    <!-- 展示态始终保留：编辑时上方内容（信息行 / 比分块 / 分割线 / 操作按钮）位置不变，
+         可编辑内容从页脚按钮下方展开的抽屉里出现，兼作比分对照 -->
+    <block>
+      <view wx:for="{{item.camps}}" wx:for-item="c" wx:key="id" class="camp-block {{c.is_winner ? 'winner' : 'loser'}}">
+        <image wx:if="{{c.is_winner}}" class="camp-bg" src="/assets/bg-win.png" mode="aspectFill"/>
+        <image wx:else class="camp-bg" src="/assets/bg-lose.png" mode="aspectFill"/>
+        <view class="camp-line">
+          <view class="camp-line-left">
+            <view class="camp-name-text">
+              <view class="camp-color-mark" style="background-color: {{c.color}};"></view>
+              <text>{{c.name}}：{{c.total_score}} 分</text>
+            </view>
+          </view>
+          <text wx:if="{{c.is_winner}}" class="win">🏆</text>
+        </view>
+        <view wx:if="{{c.players.length}}" class="camp-players">
+          <!-- MVP 玩家整颗胶囊走金色主题，不再吃阵营色（红/蓝/绿/紫）。
+               姓名半格背景原本是内联 style，优先级高于 WXSS 类，故 MVP 时
+               必须不输出内联背景，.player-name-half.is-mvp 的渐变才能生效。
+               昵称保持纯文本、不加角标：MVP 只靠配色区分。 -->
+          <view wx:for="{{c.players}}" wx:for-item="p" wx:key="player_id" class="player-score {{p.is_mvp ? 'is-mvp' : ''}}">
+            <view class="player-name-half {{p.is_mvp ? 'is-mvp' : ''}}" style="{{p.is_mvp ? '' : 'background-color: ' + c.color + ';'}}">{{p.name}}</view>
+            <view wx:if="{{item.type === 'skill' && p.skill_name}}" class="player-skill-half">{{p.skill_name}}</view>
+            <view class="player-score-half">{{p.score}}分</view>
           </view>
         </view>
-        <text wx:if="{{c.is_winner}}" class="win">🏆</text>
       </view>
-      <view wx:if="{{c.players.length}}" class="camp-players">
-        <view wx:for="{{c.players}}" wx:for-item="p" wx:key="player_id" class="player-score">
-          <view class="player-name-half" style="background-color: {{c.color}};">{{p.name}}</view>
-          <view class="player-score-half">{{p.score}}分</view>
+    </block>
+
+    <!-- 卡片页脚：分割线只由本层提供一次，按钮行常驻且位置固定。
+         编辑态不再往页脚里插预览行（会把按钮往下推），预览与保存改挂下方抽屉。 -->
+    <view class="match-footer">
+      <view class="match-actions">
+        <button wx:if="{{item.id !== editingId}}" class="btn-ghost mini match-edit" hover-class="btn-hover" catchtap="openEdit" data-id="{{item.id}}">编辑</button>
+        <button wx:else class="btn-ghost mini match-edit" hover-class="btn-hover" catchtap="cancelEdit">收起</button>
+        <button class="btn-danger mini match-del" hover-class="btn-hover" catchtap="deleteMatch" data-id="{{item.id}}">删除</button>
+      </view>
+    </view>
+
+    <!-- 编辑抽屉：挂在页脚之后，是卡片最后一个子节点。
+         展开时 max-height 从 0 到实测高度、内容轻微下滑 + 淡入 → 从按钮下方向下展开；
+         收起时反向收回 → 内容向按钮方向向上折叠，按钮全程不动。
+         高度由 JS 测量 .match-edit-drawer__inner 后以内联 px 给出，
+         不用固定大值，否则折叠动画前半段看不出变化。 -->
+    <view wx:if="{{item.id === editingId}}" class="match-edit-drawer {{drawerOpen ? 'is-open' : ''}}" style="max-height: {{drawerMaxHeight}}">
+      <view class="match-edit-drawer__inner">
+        <!-- 编辑内容：比分相关（玩家 / 分数 / 已出完 / MVP）+ 对局类型与玩家技能 -->
+        <view class="form season-edit match-edit-form" catchtap="noop">
+          <!-- 只读说明单行：左边界与下方「赛季」等表单标签同一条竖线（64rpx），
+               两句之间用「·」分隔。斜杠两侧不留空格，否则 24rpx 字号下会顶到 622rpx 边界折行 -->
+          <view class="edit-lock-tip">正在编辑 #{{item.id}} 局 · 日期/局次/牌副数/赛季等不可修改</view>
+          <view class="form-row">
+            <text class="form-label form-label--justify">赛季</text>
+            <view class="picker-right">
+              <view class="picker-value picker-locked">
+                <text class="picker-text">{{edit.seasonLabel}}</text>
+                <text class="picker-lock">🔒</text>
+              </view>
+            </view>
+          </view>
+          <view class="form-row form-row--inline">
+            <view class="form-field">
+              <text class="form-label form-label--inline">牌副数</text>
+              <view class="picker-value picker-value--right"><text class="picker-text">{{edit.deckCount}} 副</text></view>
+            </view>
+            <view class="form-field">
+              <text class="form-label form-label--inline">获胜线</text>
+              <view class="picker-value picker-value--right"><text class="picker-text">{{edit.winLine}} 分</text></view>
+            </view>
+          </view>
+          <!-- 对局类型独占整行，放在两个只读字段下方；不塞进上面的 50% 两列变成三列 -->
+          <view class="form-row">
+            <text class="form-label form-label--justify">类型</text>
+            <picker class="picker-right" range="{{edit.typeOptions}}" range-key="label" value="{{edit.typeIndex}}" bindchange="editOnTypeChange">
+              <view class="picker-value">
+                <text class="picker-text">{{edit.typeOptions[edit.typeIndex].label}}</text>
+                <text class="picker-arrow">▾</text>
+              </view>
+            </picker>
+          </view>
+
+          <!-- 不合规提示放在队伍列表**上方**（与计分页 scoring.wxml:58-60 同位）：
+               它描述的是「整局是否成立」，属于全局约束，应当在动手改玩家之前就看到；
+               原来挂在列表下方，会被几个阵营卡顶下去、并与页脚分割线挤在一起。
+               与计分页同一范式：所有不合规项合并成一行 + ⚠️ 前缀，不再拆成
+               「红字硬错误」+「灰字软提示（每条带尾随分号）」两段。 -->
+          <view wx:if="{{edit.ruleWarnText}}" class="rule-warns"><text class="warn">⚠️ {{edit.ruleWarnText}}</text></view>
+
+          <view wx:for="{{edit.camps}}" wx:key="campId" wx:for-item="c" wx:for-index="ci" class="card camp-card camp-color-{{c.colorKey}} {{edit.type === 'skill' ? 'has-skill' : ''}}" style="border-left-color: {{c.color}};">
+            <view class="row-between camp-head">
+              <view class="camp-head-left">
+                <view class="camp-dot" style="background-color: {{c.color}};"></view>
+                <text class="name">{{c.name}}</text>
+                <text class="camp-subtotal">小计 {{c.subtotal}} 分</text>
+              </view>
+              <text wx:if="{{edit.result.rows[ci].isWinner}}" class="win">🏆 过线</text>
+            </view>
+
+            <block wx:for="{{c.players}}" wx:key="uid" wx:for-item="p" wx:for-index="pi">
+              <view class="player-row">
+                <picker range="{{p.available}}" range-key="name" value="{{p.availIdx}}" bindchange="editOnPlayerPick" data-camp="{{ci}}" data-pi="{{pi}}">
+                  <view class="picker sm">{{p.playerName}}</view>
+                </picker>
+                <input class="score-input" placeholder-class="placeholder-center" type="number" placeholder="得分" value="{{p.score}}" bindinput="editOnScore" bindblur="editOnScoreBlur" data-camp="{{ci}}" data-pi="{{pi}}" />
+                <view class="player-actions">
+                  <view class="chip {{p.finished ? 'active' : ''}}" catchtap="editOnFinished" data-camp="{{ci}}" data-pi="{{pi}}">{{p.finished ? '已出完' : '未出完'}}</view>
+                  <view class="chip {{p.mvp ? 'active mvp' : ''}}" catchtap="editOnMvp" data-camp="{{ci}}" data-pi="{{pi}}">MVP</view>
+                  <!-- 每队最小玩家数内的行不可删：保留 ✕ 的横向位置，只隐藏符号且不绑事件，
+                       与计分页（scoring.wxml:90-91）完全一致 -->
+                  <view wx:if="{{p.locked}}" class="del del--placeholder">✕</view>
+                  <view wx:else class="del" catchtap="editRemovePlayer" data-camp="{{ci}}" data-pi="{{pi}}">✕</view>
+                </view>
+              </view>
+              <!-- 仅技能赛显示：技能下拉独占第二行，不与玩家行抢横向空间 -->
+              <view wx:if="{{edit.type === 'skill'}}" class="player-skill-row">
+                <text class="skill-label">技能</text>
+                <picker wx:if="{{edit.skills.length}}" class="skill-picker" range="{{edit.skills}}" range-key="name" value="{{p.skillIdx}}" bindchange="editOnSkillPick" data-camp="{{ci}}" data-pi="{{pi}}">
+                  <view class="skill-picker-value" hover-class="skill-picker-value--hover">
+                    <text class="skill-picker-text {{p.skillName ? '' : 'skill-picker-text--empty'}}">{{p.skillName || '选择技能'}}</text>
+                    <text class="picker-arrow skill-picker-caret">▼</text>
+                  </view>
+                </picker>
+                <view wx:else class="skill-picker-value skill-picker-empty" catchtap="goSkills">还没有技能，点此添加</view>
+              </view>
+            </block>
+            <button wx:if="{{c.players.length < 5}}" class="btn-ghost mini add-player" hover-class="btn-hover" catchtap="editAddPlayer" data-camp="{{ci}}">+ 添加玩家</button>
+            <view wx:else class="camp-full-tip">该阵营已满5人</view>
+          </view>
+        </view>
+
+        <!-- 本局预览 + 保存修改：抽屉内容的**最后一项**（用户要求「保存还是要放在最后」），
+             不再放在表单上方。仍挂在 .match-edit-form 之外，右边缘与上方「删除」同在 710rpx；
+             单个 text 节点、不拆子节点，避免 WXML 处理节点间空白字符的差异，也天然保证单行。 -->
+        <view class="footer-preview">
+          <text class="footer-preview-text">牌库总分 {{edit.result.deckTotal}} · 获胜线 {{edit.result.winLine}}</text>
+          <button class="btn-primary match-save" hover-class="btn-hover" loading="{{edit.submitting}}" disabled="{{!edit.canSubmit || edit.submitting}}" catchtap="submitEdit">保存修改</button>
         </view>
       </view>
     </view>
@@ -46,3 +167,6 @@
   <view wx:if="{{!matches.length && !loading}}" class="empty">暂无对局记录，去「计分」录入一局</view>
   <view class="safe-bottom"></view>
 </view>
+
+<!-- 删除等危险操作的二次确认模态框 -->
+<confirm-modal id="confirmModal" />

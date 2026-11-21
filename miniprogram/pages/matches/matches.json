@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "对局",
-  "enablePullDownRefresh": true
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "confirm-modal": "/components/confirm-modal/confirm-modal"
+  }
 }

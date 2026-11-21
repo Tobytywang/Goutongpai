@@ -102,6 +102,7 @@ function matchRow(match, root, seq) {
     h('span', { class: 'match-row__time' }, `${fmtDate(match.played_at)}${seqNo ? ` · 第 ${seqNo} 局` : ''}`),
     h('span', { class: 'muted', style: { fontSize: '11px' } }, fmtRelative(match.played_at)),
     h('span', { class: 'badge' }, `${match.deck_count} 副牌 · 牌库 ${match.deck_total} 分 · 线 ${match.win_line}`),
+    match.type === 'skill' ? h('span', { class: 'badge badge--info' }, '技能赛') : null,
     match.table_name ? h('span', { class: 'badge badge--info' }, match.table_name) : null,
     audit.winners === 0 ? h('span', { class: 'badge' }, '无阵营过线') : null,
     audit.winners > 1 ? h('span', { class: 'badge badge--win' }, '多阵营过线 · 待核对') : null,
@@ -176,6 +177,7 @@ function detailBlock(match, root) {
         player ? avatarEl(player, 'sm') : null,
         h('span', { class: 'mcamp-row__name', title: name }, name),
         entry.is_mvp ? h('span', { class: 'badge badge--mvp', title: '本局 MVP' }, '★ MVP') : null,
+        entry.skill_name ? h('span', { class: 'badge', title: '本局技能' }, entry.skill_name) : null,
         h('span', { class: 'mcamp-row__score' }, String(entry.score)),
         h('span', { class: `badge${entry.finished ? ' badge--felt' : ''}` }, entry.finished ? '出完' : '未出完')
       );
